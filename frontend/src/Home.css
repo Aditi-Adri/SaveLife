@@ -1,13 +1,4 @@
 .home {
-  --bg: #0f172a;
-  --bg-alt: #111c33;
-  --card: #1e293b;
-  --accent: #ef4444;
-  --accent-dark: #b91c1c;
-  --text: #e2e8f0;
-  --muted: #94a3b8;
-  --line: #28344b;
-
   color: var(--text);
   background: var(--bg);
   scroll-behavior: smooth;
@@ -46,7 +37,7 @@
   align-items: center;
   gap: 20px;
   padding: 14px 28px;
-  background: rgba(15, 23, 42, 0.85);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--line);
 }
@@ -243,7 +234,7 @@ a.contact-item:hover { border-color: var(--accent); }
   padding: 11px 13px;
   border-radius: 9px;
   border: 1px solid var(--line);
-  background: #0b1220;
+  background: var(--input);
   color: var(--text);
   font-size: 0.95rem;
   font-family: inherit;
