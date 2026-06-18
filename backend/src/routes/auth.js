@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { query } from "../db/pool.js";
 import { requireAuth } from "../middleware/auth.js";
-import { generateUserCode, generatePassword } from "../utils/credentials.js";
+import { generateUserCode } from "../utils/credentials.js";
 
 const router = Router();
 
@@ -39,11 +39,13 @@ async function uniqueUserCode() {
   throw new Error("Could not generate a unique user code");
 }
 
-// POST /api/auth/register — donor fills the form; we auto-generate ID + password.
+// POST /api/auth/register — donor fills the form and chooses a password.
+// We auto-generate a Donor ID (user_code) for matching.
 router.post("/register", async (req, res) => {
   const {
     name,
     email,
+    password,
     phone,
     age,
     gender,
@@ -56,8 +58,11 @@ router.post("/register", async (req, res) => {
     medical_conditions,
   } = req.body || {};
 
-  if (!name || !email || !phone) {
-    return res.status(400).json({ error: "Name, email and phone are required" });
+  if (!name || !email || !password || !phone) {
+    return res.status(400).json({ error: "Name, email, password and phone are required" });
+  }
+  if (String(password).length < 6) {
+    return res.status(400).json({ error: "Password must be at least 6 characters" });
   }
   if (!/^\d{11}$/.test(String(phone))) {
     return res.status(400).json({ error: "Phone must be an 11-digit number" });
@@ -70,8 +75,7 @@ router.post("/register", async (req, res) => {
     }
 
     const userCode = await uniqueUserCode();
-    const plainPassword = generatePassword();
-    const hash = await bcrypt.hash(plainPassword, 10);
+    const hash = await bcrypt.hash(String(password), 10);
 
     const result = await query(
       `INSERT INTO users
@@ -98,10 +102,9 @@ router.post("/register", async (req, res) => {
     );
 
     const user = result.rows[0];
-    // The plaintext password is returned exactly once so the donor can save it.
     res.status(201).json({
       user,
-      credentials: { user_code: user.user_code, password: plainPassword },
+      credentials: { user_code: user.user_code },
       token: signToken(user),
     });
   } catch (err) {

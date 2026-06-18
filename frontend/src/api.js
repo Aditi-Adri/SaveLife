@@ -31,6 +31,9 @@ export const api = {
   publicStats: () => request("/public/stats"),
   publicRequests: () => request("/public/requests"),
 
+  // reveal a request's contact (auth required)
+  requestContact: (id) => request(`/requests/${id}/contact`),
+
   // auth
   register: (payload) => request("/auth/register", { method: "POST", body: payload }),
   login: (payload) => request("/auth/login", { method: "POST", body: payload }),

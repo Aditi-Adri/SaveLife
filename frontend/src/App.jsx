@@ -43,49 +43,59 @@ export default function App() {
     setView("auth");
   }
 
+  // Login or signup: store the user and land on the Explore page.
+  function onAuthed(u) {
+    setUser(u);
+    setAuthIntent(null);
+    setView("explore");
+  }
+
   if (loading) return <div className="center">Loading…</div>;
 
-  // Logged-out flow: Home -> Explore -> Auth (auth only on Donate/Request).
-  if (!user) {
-    if (view === "home") return <Home onGetStarted={() => setView("explore")} />;
-    if (view === "explore")
-      return (
-        <Explore
-          onHome={() => setView("home")}
-          onAuth={goAuth}
-          onOrgan={() => setView("organ")}
-        />
-      );
+  // ---- Logged-in: Explore is home; Profile and Organ are reachable from it ----
+  if (user) {
     if (view === "organ")
-      return <OrganInfo onBack={() => setView("explore")} onAuth={goAuth} />;
+      return <OrganInfo onBack={() => setView("explore")} onAuth={() => setView("profile")} />;
+    if (view === "profile")
+      return (
+        <div className="app">
+          <header className="header">
+            <h1>🩺 SaveLife</h1>
+            <div className="userbar">
+              <button className="ghost" onClick={() => setView("explore")}>← Explore</button>
+              <button className="ghost" onClick={logout}>Log out</button>
+            </div>
+          </header>
+          <DonorProfile user={user} />
+        </div>
+      );
     return (
-      <div className="app">
-        <header className="header">
-          <h1>🩺 SaveLife</h1>
-          <button className="ghost" onClick={() => setView("explore")}>
-            ← Explore
-          </button>
-        </header>
-        {authIntent && INTENT_MESSAGE[authIntent] && (
-          <p className="intent-banner">{INTENT_MESSAGE[authIntent]}</p>
-        )}
-        <AuthFlow onAuthed={setUser} />
-      </div>
+      <Explore
+        user={user}
+        onHome={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        onOrgan={() => setView("organ")}
+        onProfile={() => setView("profile")}
+        onLogout={logout}
+      />
     );
   }
 
+  // ---- Logged-out: Home -> Explore -> Auth (auth only on Donate/Request) ----
+  if (view === "home") return <Home onGetStarted={() => setView("explore")} />;
+  if (view === "explore")
+    return <Explore onHome={() => setView("home")} onAuth={goAuth} onOrgan={() => setView("organ")} />;
+  if (view === "organ")
+    return <OrganInfo onBack={() => setView("explore")} onAuth={goAuth} />;
   return (
     <div className="app">
       <header className="header">
         <h1>🩺 SaveLife</h1>
-        <div className="userbar">
-          <span>{user.name}</span>
-          <button className="ghost" onClick={logout}>
-            Log out
-          </button>
-        </div>
+        <button className="ghost" onClick={() => setView("explore")}>← Explore</button>
       </header>
-      <DonorProfile user={user} />
+      {authIntent && INTENT_MESSAGE[authIntent] && (
+        <p className="intent-banner">{INTENT_MESSAGE[authIntent]}</p>
+      )}
+      <AuthFlow onAuthed={onAuthed} />
     </div>
   );
 }
@@ -94,28 +104,15 @@ export default function App() {
 
 function AuthFlow({ onAuthed }) {
   const [mode, setMode] = useState("login"); // "login" | "register"
-  const [creds, setCreds] = useState(null); // { user_code, password }
-  const [pendingUser, setPendingUser] = useState(null);
-
-  // After registering, show the generated credentials before entering the app.
-  if (creds) {
-    return (
-      <CredentialsReveal
-        creds={creds}
-        user={pendingUser}
-        onContinue={() => onAuthed(pendingUser)}
-      />
-    );
-  }
 
   if (mode === "register") {
     return (
       <RegisterForm
         switchToLogin={() => setMode("login")}
-        onRegistered={({ credentials, user, token }) => {
+        onRegistered={({ user, token }) => {
+          // Auto-login: store the token and enter the app immediately.
           auth.setToken(token);
-          setPendingUser(user);
-          setCreds(credentials);
+          onAuthed(user);
         }}
       />
     );
@@ -152,7 +149,7 @@ function LoginForm({ onAuthed, switchToRegister }) {
   return (
     <form className="card" onSubmit={submit}>
       <h2>Donor login</h2>
-      <p className="hint">Log in with your email and the password you received when you signed up.</p>
+      <p className="hint">Log in with the email and password you chose when you signed up.</p>
       <input
         type="email"
         placeholder="Email"
@@ -185,6 +182,8 @@ function RegisterForm({ onRegistered, switchToLogin }) {
   const [form, setForm] = useState({
     name: "",
     email: "",
+    password: "",
+    confirm: "",
     phone: "",
     age: "",
     gender: "",
@@ -207,9 +206,18 @@ function RegisterForm({ onRegistered, switchToLogin }) {
       setError("Phone must be an 11-digit number (e.g. 01712345678).");
       return;
     }
+    if (form.password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    if (form.password !== form.confirm) {
+      setError("Passwords do not match.");
+      return;
+    }
     setBusy(true);
     try {
-      const payload = { ...form, drug_addicted: form.drug_addicted === "yes" };
+      const { confirm, ...rest } = form;
+      const payload = { ...rest, drug_addicted: form.drug_addicted === "yes" };
       const result = await api.register(payload);
       onRegistered(result);
     } catch (err) {
@@ -223,8 +231,8 @@ function RegisterForm({ onRegistered, switchToLogin }) {
     <form className="card" onSubmit={submit}>
       <h2>Become a donor</h2>
       <p className="hint">
-        Fill in your details. We'll generate a User ID and password for you — no
-        need to choose one.
+        Fill in your details and choose a password — you'll log in with your
+        email and password. We'll also give you a Donor ID for matching.
       </p>
 
       <label className="field-label">Full name *</label>
@@ -245,6 +253,17 @@ function RegisterForm({ onRegistered, switchToLogin }) {
             maxLength={11}
             required
           />
+        </div>
+      </div>
+
+      <div className="row">
+        <div className="col">
+          <label className="field-label">Password * (min 6 chars)</label>
+          <input type="password" placeholder="Choose a password" value={form.password} onChange={set("password")} required />
+        </div>
+        <div className="col">
+          <label className="field-label">Confirm password *</label>
+          <input type="password" placeholder="Re-enter password" value={form.confirm} onChange={set("confirm")} required />
         </div>
       </div>
 
@@ -331,47 +350,6 @@ function RegisterForm({ onRegistered, switchToLogin }) {
         </a>
       </p>
     </form>
-  );
-}
-
-function CredentialsReveal({ creds, user, onContinue }) {
-  const [copied, setCopied] = useState("");
-  function copy(label, value) {
-    navigator.clipboard?.writeText(value);
-    setCopied(label);
-    setTimeout(() => setCopied(""), 1500);
-  }
-  return (
-    <div className="card creds-card">
-      <h2>🎉 Account created!</h2>
-      <p className="warn">
-        Log in with your <strong>email and password</strong>. Save the password —
-        it's shown <strong>only once</strong>.
-      </p>
-      <div className="cred">
-        <span className="cred-label">Email</span>
-        <code>{user.email}</code>
-        <button className="ghost" onClick={() => copy("em", user.email)}>
-          {copied === "em" ? "Copied ✓" : "Copy"}
-        </button>
-      </div>
-      <div className="cred">
-        <span className="cred-label">Password</span>
-        <code>{creds.password}</code>
-        <button className="ghost" onClick={() => copy("pw", creds.password)}>
-          {copied === "pw" ? "Copied ✓" : "Copy"}
-        </button>
-      </div>
-      <div className="cred">
-        <span className="cred-label">Donor ID</span>
-        <code>{creds.user_code}</code>
-        <button className="ghost" onClick={() => copy("id", creds.user_code)}>
-          {copied === "id" ? "Copied ✓" : "Copy"}
-        </button>
-      </div>
-      <p className="hint">Your Donor ID identifies you for donation matching.</p>
-      <button onClick={onContinue}>Continue to my profile →</button>
-    </div>
   );
 }
 

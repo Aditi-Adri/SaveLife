@@ -54,6 +54,7 @@
   padding: 0 6px;
 }
 .ex-navlink:hover { color: var(--text); }
+.ex-greet { color: var(--muted); font-size: 0.92rem; }
 
 .og-teaser {
   display: flex;
@@ -147,6 +148,10 @@
 .urg-badge.urg-normal { background: var(--line); color: var(--muted); }
 .req-units { font-weight: 600; margin: 0 0 4px; }
 .req-where { color: var(--muted); font-size: 0.85rem; margin: 0 0 4px; }
+.req-phone { font-size: 0.9rem; margin: 0 0 4px; letter-spacing: 0.1em; color: var(--muted); }
+.req-phone.revealed { letter-spacing: normal; color: var(--text); font-weight: 600; }
+.req-phone a { color: #60a5fa; text-decoration: none; }
+.req-patient { font-size: 0.85rem; margin: 0 0 4px; color: var(--text); }
 .req-time { color: #64748b; font-size: 0.78rem; margin: 0 0 12px; }
 
 /* How it works */
