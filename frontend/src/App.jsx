@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, auth, getLocation } from "./api";
+import Home from "./Home";
 import "./App.css";
 
 const ALERT_TYPES = [
@@ -13,6 +14,7 @@ const ALERT_TYPES = [
 export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
     if (!auth.getToken()) {
@@ -29,29 +31,43 @@ export default function App() {
   function logout() {
     auth.clear();
     setUser(null);
+    setShowAuth(false);
   }
 
   if (loading) return <div className="center">Loading…</div>;
+
+  // Logged-out visitors see the landing page until they choose to sign in.
+  if (!user) {
+    if (!showAuth) return <Home onGetStarted={() => setShowAuth(true)} />;
+    return (
+      <div className="app">
+        <header className="header">
+          <h1>🩺 SaveLife</h1>
+          <button className="ghost" onClick={() => setShowAuth(false)}>
+            ← Home
+          </button>
+        </header>
+        <AuthForm onAuthed={setUser} />
+      </div>
+    );
+  }
 
   return (
     <div className="app">
       <header className="header">
         <h1>🩺 SaveLife</h1>
-        {user && (
-          <div className="userbar">
-            <span>
-              {user.name} <em className="role">{user.role}</em>
-            </span>
-            <button className="ghost" onClick={logout}>
-              Log out
-            </button>
-          </div>
-        )}
+        <div className="userbar">
+          <span>
+            {user.name} <em className="role">{user.role}</em>
+          </span>
+          <button className="ghost" onClick={logout}>
+            Log out
+          </button>
+        </div>
       </header>
 
-      {!user && <AuthForm onAuthed={setUser} />}
-      {user?.role === "responder" && <ResponderDashboard />}
-      {user?.role === "user" && <UserDashboard user={user} onUser={setUser} />}
+      {user.role === "responder" && <ResponderDashboard />}
+      {user.role === "user" && <UserDashboard user={user} onUser={setUser} />}
     </div>
   );
 }
