@@ -1,0 +1,4 @@
+/* Minimal global reset — component styles live in App.css */
+html, body, #root {
+  height: 100%;
+}
