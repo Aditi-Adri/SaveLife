@@ -1,4 +1,4 @@
-// API client for the SaveLife SOS app.
+// API client for the SaveLife donation app.
 // In dev, Vite proxies /api -> backend (see vite.config.js). In production the
 // backend serves this app, so relative /api paths work there too.
 
@@ -27,6 +27,10 @@ async function request(path, { method = "GET", body } = {}) {
 }
 
 export const api = {
+  // public (no auth) — for the Explore page
+  publicStats: () => request("/public/stats"),
+  publicRequests: () => request("/public/requests"),
+
   // auth
   register: (payload) => request("/auth/register", { method: "POST", body: payload }),
   login: (payload) => request("/auth/login", { method: "POST", body: payload }),

@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import authRoutes from "./routes/auth.js";
 import contactRoutes from "./routes/contacts.js";
 import alertRoutes from "./routes/alerts.js";
+import publicRoutes from "./routes/public.js";
 import { initDb } from "./db/initDb.js";
 
 dotenv.config();
@@ -26,6 +27,7 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", service: "SaveLife API", time: new Date().toISOString() });
 });
 
+app.use("/api/public", publicRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/alerts", alertRoutes);

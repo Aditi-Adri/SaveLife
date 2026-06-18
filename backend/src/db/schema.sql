@@ -1,18 +1,38 @@
--- SaveLife — Emergency SOS / ambulance database schema
+-- SaveLife — blood / organ / plasma donation database schema
 -- Idempotent: safe to run repeatedly. Runs automatically on server boot,
 -- or manually with: npm run db:migrate
 
 CREATE TABLE IF NOT EXISTS users (
-  id          SERIAL PRIMARY KEY,
-  name        VARCHAR(120) NOT NULL,
-  email       VARCHAR(255) UNIQUE NOT NULL,
-  password    VARCHAR(255) NOT NULL,
-  phone       VARCHAR(40),
-  blood_type  VARCHAR(5),
-  role        VARCHAR(20) NOT NULL DEFAULT 'user'
-              CHECK (role IN ('user', 'responder')),
-  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+  id                 SERIAL PRIMARY KEY,
+  user_code          VARCHAR(20) UNIQUE,        -- auto-generated login ID, e.g. SLF-7K9QF2
+  name               VARCHAR(120) NOT NULL,
+  email              VARCHAR(255) UNIQUE NOT NULL,
+  password           VARCHAR(255) NOT NULL,
+  phone              VARCHAR(20),               -- 11-digit number
+  age                INTEGER,
+  gender             VARCHAR(20),
+  weight             NUMERIC(5,2),              -- kg
+  blood_type         VARCHAR(5),
+  donation_count     INTEGER DEFAULT 0,
+  last_donation      DATE,
+  donation_history   TEXT,
+  drug_addicted      BOOLEAN DEFAULT false,
+  medical_conditions TEXT,                      -- any sickness / conditions
+  role               VARCHAR(20) NOT NULL DEFAULT 'user'
+                     CHECK (role IN ('user', 'responder')),
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Patch older installs that created `users` before these columns existed.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS user_code          VARCHAR(20) UNIQUE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS age                INTEGER;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS gender             VARCHAR(20);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS weight             NUMERIC(5,2);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS donation_count     INTEGER DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS last_donation      DATE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS donation_history   TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS drug_addicted      BOOLEAN DEFAULT false;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS medical_conditions TEXT;
 
 -- People to notify when a user triggers an SOS.
 CREATE TABLE IF NOT EXISTS emergency_contacts (
@@ -44,3 +64,23 @@ CREATE TABLE IF NOT EXISTS alerts (
 
 CREATE INDEX IF NOT EXISTS idx_alerts_user_id ON alerts(user_id);
 CREATE INDEX IF NOT EXISTS idx_alerts_status ON alerts(status);
+
+-- Blood requests posted by users; browsable read-only on the public Explore page.
+CREATE TABLE IF NOT EXISTS blood_requests (
+  id            SERIAL PRIMARY KEY,
+  requester_id  INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  patient_name  VARCHAR(120) NOT NULL,
+  blood_type    VARCHAR(5) NOT NULL,
+  units_needed  INTEGER NOT NULL DEFAULT 1,
+  hospital      VARCHAR(160),
+  location      VARCHAR(160),
+  contact_phone VARCHAR(20),
+  urgency       VARCHAR(20) NOT NULL DEFAULT 'urgent'
+                CHECK (urgency IN ('normal', 'urgent', 'critical')),
+  status        VARCHAR(20) NOT NULL DEFAULT 'open'
+                CHECK (status IN ('open', 'fulfilled', 'cancelled')),
+  note          TEXT,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_requests_status ON blood_requests(status);

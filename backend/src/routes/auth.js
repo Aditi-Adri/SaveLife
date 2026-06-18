@@ -3,26 +3,65 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { query } from "../db/pool.js";
 import { requireAuth } from "../middleware/auth.js";
+import { generateUserCode, generatePassword } from "../utils/credentials.js";
 
 const router = Router();
 
-const PUBLIC_FIELDS = "id, name, email, phone, blood_type, role, created_at";
+// Columns safe to send to the client (never the password hash).
+const PUBLIC_FIELDS = `id, user_code, name, email, phone, age, gender, weight,
+  blood_type, donation_count, last_donation, donation_history,
+  drug_addicted, medical_conditions, role, created_at`;
 
 function signToken(user) {
   return jwt.sign(
-    { sub: user.id, email: user.email, role: user.role },
+    { sub: user.id, email: user.email, role: user.role, user_code: user.user_code },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
   );
 }
 
-// POST /api/auth/register
-router.post("/register", async (req, res) => {
-  const { name, email, password, phone, blood_type, role } = req.body || {};
-  if (!name || !email || !password) {
-    return res.status(400).json({ error: "name, email and password are required" });
+function toInt(v) {
+  const n = parseInt(v, 10);
+  return Number.isFinite(n) ? n : null;
+}
+function toNum(v) {
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+// Generate a user_code that isn't already taken (handles the rare collision).
+async function uniqueUserCode() {
+  for (let i = 0; i < 5; i++) {
+    const code = generateUserCode();
+    const { rows } = await query("SELECT 1 FROM users WHERE user_code = $1", [code]);
+    if (rows.length === 0) return code;
   }
-  const safeRole = role === "responder" ? "responder" : "user";
+  throw new Error("Could not generate a unique user code");
+}
+
+// POST /api/auth/register — donor fills the form; we auto-generate ID + password.
+router.post("/register", async (req, res) => {
+  const {
+    name,
+    email,
+    phone,
+    age,
+    gender,
+    weight,
+    blood_type,
+    donation_count,
+    last_donation,
+    donation_history,
+    drug_addicted,
+    medical_conditions,
+  } = req.body || {};
+
+  if (!name || !email || !phone) {
+    return res.status(400).json({ error: "Name, email and phone are required" });
+  }
+  if (!/^\d{11}$/.test(String(phone))) {
+    return res.status(400).json({ error: "Phone must be an 11-digit number" });
+  }
 
   try {
     const existing = await query("SELECT id FROM users WHERE email = $1", [email]);
@@ -30,34 +69,62 @@ router.post("/register", async (req, res) => {
       return res.status(409).json({ error: "Email already registered" });
     }
 
-    const hash = await bcrypt.hash(password, 10);
+    const userCode = await uniqueUserCode();
+    const plainPassword = generatePassword();
+    const hash = await bcrypt.hash(plainPassword, 10);
+
     const result = await query(
-      `INSERT INTO users (name, email, password, phone, blood_type, role)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO users
+         (user_code, name, email, password, phone, age, gender, weight, blood_type,
+          donation_count, last_donation, donation_history, drug_addicted, medical_conditions)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
        RETURNING ${PUBLIC_FIELDS}`,
-      [name, email, hash, phone || null, blood_type || null, safeRole]
+      [
+        userCode,
+        name,
+        email,
+        hash,
+        String(phone),
+        toInt(age),
+        gender || null,
+        toNum(weight),
+        blood_type || null,
+        toInt(donation_count) ?? 0,
+        last_donation || null,
+        donation_history || null,
+        drug_addicted === true || drug_addicted === "yes",
+        medical_conditions || null,
+      ]
     );
 
     const user = result.rows[0];
-    res.status(201).json({ user, token: signToken(user) });
+    // The plaintext password is returned exactly once so the donor can save it.
+    res.status(201).json({
+      user,
+      credentials: { user_code: user.user_code, password: plainPassword },
+      token: signToken(user),
+    });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to register user" });
+    res.status(500).json({ error: "Failed to register" });
   }
 });
 
-// POST /api/auth/login
+// POST /api/auth/login — log in with the auto-generated User ID (or email) + password.
 router.post("/login", async (req, res) => {
-  const { email, password } = req.body || {};
-  if (!email || !password) {
-    return res.status(400).json({ error: "email and password are required" });
+  const { identifier, password } = req.body || {};
+  if (!identifier || !password) {
+    return res.status(400).json({ error: "User ID and password are required" });
   }
 
   try {
-    const result = await query("SELECT * FROM users WHERE email = $1", [email]);
+    const result = await query(
+      "SELECT * FROM users WHERE user_code = $1 OR email = $1",
+      [identifier]
+    );
     const row = result.rows[0];
     if (!row || !(await bcrypt.compare(password, row.password))) {
-      return res.status(401).json({ error: "Invalid credentials" });
+      return res.status(401).json({ error: "Invalid User ID or password" });
     }
 
     const { password: _pw, ...user } = row;
@@ -68,25 +135,48 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// GET /api/auth/me
+// GET /api/auth/me — full profile of the logged-in donor.
 router.get("/me", requireAuth, async (req, res) => {
-  const result = await query(
-    `SELECT ${PUBLIC_FIELDS} FROM users WHERE id = $1`,
-    [req.user.id]
-  );
+  const result = await query(`SELECT ${PUBLIC_FIELDS} FROM users WHERE id = $1`, [
+    req.user.id,
+  ]);
   res.json({ user: result.rows[0] || null });
 });
 
-// PUT /api/auth/profile — update phone / blood type
+// PUT /api/auth/profile — update editable profile fields.
 router.put("/profile", requireAuth, async (req, res) => {
-  const { phone, blood_type } = req.body || {};
+  const { phone, age, weight, blood_type, donation_count, last_donation,
+    donation_history, drug_addicted, medical_conditions } = req.body || {};
+
+  if (phone != null && !/^\d{11}$/.test(String(phone))) {
+    return res.status(400).json({ error: "Phone must be an 11-digit number" });
+  }
+
   const result = await query(
-    `UPDATE users
-        SET phone = COALESCE($1, phone),
-            blood_type = COALESCE($2, blood_type)
-      WHERE id = $3
+    `UPDATE users SET
+        phone = COALESCE($1, phone),
+        age = COALESCE($2, age),
+        weight = COALESCE($3, weight),
+        blood_type = COALESCE($4, blood_type),
+        donation_count = COALESCE($5, donation_count),
+        last_donation = COALESCE($6, last_donation),
+        donation_history = COALESCE($7, donation_history),
+        drug_addicted = COALESCE($8, drug_addicted),
+        medical_conditions = COALESCE($9, medical_conditions)
+      WHERE id = $10
       RETURNING ${PUBLIC_FIELDS}`,
-    [phone ?? null, blood_type ?? null, req.user.id]
+    [
+      phone != null ? String(phone) : null,
+      toInt(age),
+      toNum(weight),
+      blood_type ?? null,
+      toInt(donation_count),
+      last_donation ?? null,
+      donation_history ?? null,
+      typeof drug_addicted === "boolean" ? drug_addicted : null,
+      medical_conditions ?? null,
+      req.user.id,
+    ]
   );
   res.json({ user: result.rows[0] });
 });
