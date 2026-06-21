@@ -90,3 +90,48 @@ CREATE INDEX IF NOT EXISTS idx_requests_status ON blood_requests(status);
 -- Patch older installs that created blood_requests before geo columns existed.
 ALTER TABLE blood_requests ADD COLUMN IF NOT EXISTS latitude  DOUBLE PRECISION;
 ALTER TABLE blood_requests ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION;
+
+-- Hospitals users can browse and book.
+CREATE TABLE IF NOT EXISTS hospitals (
+  id              SERIAL PRIMARY KEY,
+  name            VARCHAR(160) NOT NULL,
+  city            VARCHAR(80),
+  address         VARCHAR(200),
+  phone           VARCHAR(30),
+  email           VARCHAR(160),
+  beds_available  INTEGER DEFAULT 0,
+  has_blood_bank  BOOLEAN DEFAULT false,
+  has_ambulance   BOOLEAN DEFAULT false,
+  latitude        DOUBLE PRECISION,
+  longitude       DOUBLE PRECISION,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS email VARCHAR(160);
+
+CREATE TABLE IF NOT EXISTS hospital_bookings (
+  id            SERIAL PRIMARY KEY,
+  user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  hospital_id   INTEGER NOT NULL REFERENCES hospitals(id) ON DELETE CASCADE,
+  patient_name  VARCHAR(120) NOT NULL,
+  reason        VARCHAR(200),
+  booking_date  DATE,
+  status        VARCHAR(20) NOT NULL DEFAULT 'pending'
+                CHECK (status IN ('pending', 'confirmed', 'cancelled')),
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_bookings_user ON hospital_bookings(user_id);
+
+-- Ambulance services for the emergency "call ambulance" page.
+CREATE TABLE IF NOT EXISTS ambulance_services (
+  id             SERIAL PRIMARY KEY,
+  name           VARCHAR(160) NOT NULL,
+  city           VARCHAR(80),
+  phone          VARCHAR(30) NOT NULL,
+  email          VARCHAR(160),
+  available_24_7 BOOLEAN DEFAULT true,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE ambulance_services ADD COLUMN IF NOT EXISTS email VARCHAR(160);

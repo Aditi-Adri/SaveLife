@@ -44,4 +44,35 @@ router.get("/requests", async (req, res) => {
   }
 });
 
+// GET /api/public/hospitals — browsable hospital list.
+router.get("/hospitals", async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT id, name, city, address, phone, email, beds_available, has_blood_bank,
+              has_ambulance, latitude, longitude
+         FROM hospitals
+        ORDER BY city, name`
+    );
+    res.json({ hospitals: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to load hospitals" });
+  }
+});
+
+// GET /api/public/ambulances — emergency ambulance services (public for emergencies).
+router.get("/ambulances", async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT id, name, city, phone, email, available_24_7
+         FROM ambulance_services
+        ORDER BY (phone = '999') DESC, city, name`
+    );
+    res.json({ ambulances: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to load ambulances" });
+  }
+});
+
 export default router;

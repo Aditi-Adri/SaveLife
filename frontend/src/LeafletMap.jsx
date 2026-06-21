@@ -6,7 +6,8 @@ import "./LeafletMap.css";
 // Interactive map using Leaflet + OpenStreetMap tiles (no API key).
 // markers: [{ id, lat, lng, label, popupHtml }]
 // userLocation: { lat, lng } | null
-export default function LeafletMap({ markers = [], userLocation = null, height = 320 }) {
+// route: [[lat,lng], ...] | null  (a driving route polyline to draw)
+export default function LeafletMap({ markers = [], userLocation = null, route = null, height = 320 }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const layerRef = useRef(null);
@@ -69,9 +70,16 @@ export default function LeafletMap({ markers = [], userLocation = null, height =
       points.push([userLocation.lat, userLocation.lng]);
     }
 
-    if (points.length === 1) map.setView(points[0], 13);
-    else if (points.length > 1) map.fitBounds(points, { padding: [40, 40] });
-  }, [markers, userLocation]);
+    if (route && route.length > 1) {
+      L.polyline(route, { color: "#ef4444", weight: 5, opacity: 0.8 }).addTo(group);
+      route.forEach((p) => points.push(p));
+    }
+
+    // When a route is shown, frame the route; otherwise frame all points.
+    const frame = route && route.length > 1 ? route : points;
+    if (frame.length === 1) map.setView(frame[0], 13);
+    else if (frame.length > 1) map.fitBounds(frame, { padding: [40, 40] });
+  }, [markers, userLocation, route]);
 
   return <div ref={containerRef} className="leaflet-host" style={{ height }} />;
 }

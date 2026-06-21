@@ -34,6 +34,12 @@ export const api = {
   // reveal a request's contact (auth required)
   requestContact: (id) => request(`/requests/${id}/contact`),
 
+  // hospitals & ambulances
+  publicHospitals: () => request("/public/hospitals"),
+  publicAmbulances: () => request("/public/ambulances"),
+  bookHospital: (id, payload) => request(`/hospitals/${id}/book`, { method: "POST", body: payload }),
+  myBookings: () => request("/hospitals/bookings"),
+
   // auth
   register: (payload) => request("/auth/register", { method: "POST", body: payload }),
   login: (payload) => request("/auth/login", { method: "POST", body: payload }),

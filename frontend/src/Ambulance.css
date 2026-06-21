@@ -1,0 +1,75 @@
+.amb {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.amb .btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 10px 18px; border-radius: 10px; border: none;
+  font-weight: 600; font-size: 0.95rem; cursor: pointer;
+  transition: transform 0.15s, background 0.2s, border-color 0.2s;
+}
+.amb .btn:hover { transform: translateY(-1px); }
+.amb .btn-primary { background: var(--accent); color: #fff; }
+.amb .btn-primary:hover { background: var(--accent-dark); }
+.amb .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--line); }
+.amb .btn-outline:hover { border-color: var(--accent); }
+
+.amb-nav {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 28px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.amb-nav .brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 1.25rem; cursor: pointer; }
+.amb-nav .brand span { color: var(--accent); }
+
+.amb-hero { text-align: center; padding: 48px 24px 20px; max-width: 700px; margin: 0 auto; }
+.amb-tag {
+  display: inline-block; padding: 6px 16px; border-radius: 999px;
+  background: rgba(239, 68, 68, 0.14); border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5; font-size: 0.9rem; margin-bottom: 14px;
+}
+.amb-hero h1 { margin: 0 0 8px; font-size: clamp(1.8rem, 4vw, 2.6rem); }
+.amb-hero p { color: var(--muted); margin: 0; }
+
+/* Big emergency call banner */
+.amb-emergency {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  max-width: 720px; margin: 8px auto 24px; padding: 22px 28px;
+  background: linear-gradient(135deg, #b91c1c, #ef4444);
+  border-radius: 16px; color: #fff; text-decoration: none;
+  box-shadow: 0 10px 30px rgba(239, 68, 68, 0.35);
+}
+.amb-emergency small { display: block; opacity: 0.9; font-size: 0.85rem; }
+.amb-emergency strong { font-size: 2rem; letter-spacing: 0.04em; }
+.amb-call-big { font-weight: 700; font-size: 1.05rem; white-space: nowrap; }
+
+.amb-section { max-width: 900px; margin: 0 auto; padding: 8px 24px 16px; }
+.amb-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; }
+.amb-head h2 { margin: 0; font-size: 1.3rem; }
+.amb-head select {
+  padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--input); color: var(--text);
+}
+
+.amb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.amb-card {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px;
+}
+.amb-card h3 { margin: 0 0 4px; font-size: 1rem; }
+.amb-card p { margin: 0; color: var(--muted); font-size: 0.84rem; }
+.amb-card .amb-phone { color: var(--text); font-weight: 600; font-size: 0.95rem; margin-top: 4px; }
+.amb-email { font-size: 0.8rem; margin-top: 4px; word-break: break-all; }
+.amb-email a { color: #60a5fa; text-decoration: none; }
+.amb-muted { color: var(--muted); }
+.amb-error { color: #fca5a5; text-align: center; }
+
+.amb-disclaimer {
+  max-width: 640px; margin: 20px auto 60px; padding: 0 24px;
+  color: #64748b; font-size: 0.82rem; text-align: center; line-height: 1.5;
+}

@@ -54,6 +54,8 @@
   padding: 0 6px;
 }
 .ex-navlink:hover { color: var(--text); }
+.ex-navlink.amb-link { color: #fca5a5; font-weight: 600; }
+.ex-navlink.amb-link:hover { color: var(--accent); }
 .ex-greet { color: var(--muted); font-size: 0.92rem; }
 
 .og-teaser {

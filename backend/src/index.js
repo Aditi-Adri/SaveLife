@@ -10,6 +10,7 @@ import contactRoutes from "./routes/contacts.js";
 import alertRoutes from "./routes/alerts.js";
 import publicRoutes from "./routes/public.js";
 import requestRoutes from "./routes/requests.js";
+import hospitalRoutes from "./routes/hospitals.js";
 import { initDb } from "./db/initDb.js";
 
 dotenv.config();
@@ -30,6 +31,7 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api/public", publicRoutes);
 app.use("/api/requests", requestRoutes);
+app.use("/api/hospitals", hospitalRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/alerts", alertRoutes);

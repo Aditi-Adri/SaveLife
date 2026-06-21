@@ -28,7 +28,7 @@ function fmtKm(km) {
   return km < 10 ? `${km.toFixed(1)} km` : `${Math.round(km)} km`;
 }
 
-export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLogout }) {
+export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLogout, onHospitals, onAmbulance }) {
   const [stats, setStats] = useState(null);
   const [requests, setRequests] = useState([]);
   const [error, setError] = useState("");
@@ -113,6 +113,8 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
           🩺 <span>SaveLife</span>
         </a>
         <div className="ex-nav-actions">
+          <a className="ex-navlink" onClick={onHospitals} role="button">🏥 Hospitals</a>
+          <a className="ex-navlink amb-link" onClick={onAmbulance} role="button">🚑 Ambulance</a>
           <a className="ex-navlink" onClick={onOrgan} role="button">Organ Donation</a>
           {user ? (
             <>

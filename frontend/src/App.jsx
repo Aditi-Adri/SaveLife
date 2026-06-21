@@ -3,6 +3,8 @@ import { api, auth } from "./api";
 import Home from "./Home";
 import Explore from "./Explore";
 import OrganInfo from "./OrganInfo";
+import Hospitals from "./Hospitals";
+import Ambulance from "./Ambulance";
 import "./App.css";
 
 const INTENT_MESSAGE = {
@@ -56,6 +58,10 @@ export default function App() {
   if (user) {
     if (view === "organ")
       return <OrganInfo onBack={() => setView("explore")} onAuth={() => setView("profile")} />;
+    if (view === "hospitals")
+      return <Hospitals user={user} onBack={() => setView("explore")} onAuth={goAuth} />;
+    if (view === "ambulance")
+      return <Ambulance onBack={() => setView("explore")} />;
     if (view === "profile")
       return (
         <div className="app">
@@ -76,6 +82,8 @@ export default function App() {
         onOrgan={() => setView("organ")}
         onProfile={() => setView("profile")}
         onLogout={logout}
+        onHospitals={() => setView("hospitals")}
+        onAmbulance={() => setView("ambulance")}
       />
     );
   }
@@ -83,9 +91,21 @@ export default function App() {
   // ---- Logged-out: Home -> Explore -> Auth (auth only on Donate/Request) ----
   if (view === "home") return <Home onGetStarted={() => setView("explore")} />;
   if (view === "explore")
-    return <Explore onHome={() => setView("home")} onAuth={goAuth} onOrgan={() => setView("organ")} />;
+    return (
+      <Explore
+        onHome={() => setView("home")}
+        onAuth={goAuth}
+        onOrgan={() => setView("organ")}
+        onHospitals={() => setView("hospitals")}
+        onAmbulance={() => setView("ambulance")}
+      />
+    );
   if (view === "organ")
     return <OrganInfo onBack={() => setView("explore")} onAuth={goAuth} />;
+  if (view === "hospitals")
+    return <Hospitals user={null} onBack={() => setView("explore")} onAuth={goAuth} />;
+  if (view === "ambulance")
+    return <Ambulance onBack={() => setView("explore")} />;
   return (
     <div className="app">
       <header className="header">
