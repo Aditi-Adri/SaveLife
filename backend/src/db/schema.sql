@@ -74,6 +74,8 @@ CREATE TABLE IF NOT EXISTS blood_requests (
   units_needed  INTEGER NOT NULL DEFAULT 1,
   hospital      VARCHAR(160),
   location      VARCHAR(160),
+  latitude      DOUBLE PRECISION,
+  longitude     DOUBLE PRECISION,
   contact_phone VARCHAR(20),
   urgency       VARCHAR(20) NOT NULL DEFAULT 'urgent'
                 CHECK (urgency IN ('normal', 'urgent', 'critical')),
@@ -84,3 +86,7 @@ CREATE TABLE IF NOT EXISTS blood_requests (
 );
 
 CREATE INDEX IF NOT EXISTS idx_requests_status ON blood_requests(status);
+
+-- Patch older installs that created blood_requests before geo columns existed.
+ALTER TABLE blood_requests ADD COLUMN IF NOT EXISTS latitude  DOUBLE PRECISION;
+ALTER TABLE blood_requests ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION;

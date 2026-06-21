@@ -154,6 +154,15 @@
 .req-patient { font-size: 0.85rem; margin: 0 0 4px; color: var(--text); }
 .req-time { color: #64748b; font-size: 0.78rem; margin: 0 0 12px; }
 
+.req-distance {
+  margin: 0 0 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #34d399;
+}
+/* spacing between the overview map and the request grid */
+.req-grid { margin-top: 16px; }
+
 /* How it works */
 .how-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
 .how-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 24px; }

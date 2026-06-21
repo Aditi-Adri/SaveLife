@@ -30,7 +30,7 @@ router.get("/requests", async (req, res) => {
   try {
     const result = await query(
       `SELECT id, patient_name, blood_type, units_needed, hospital, location,
-              urgency, created_at
+              latitude, longitude, urgency, created_at
          FROM blood_requests
         WHERE status = 'open'
         ORDER BY CASE urgency WHEN 'critical' THEN 0 WHEN 'urgent' THEN 1 ELSE 2 END,

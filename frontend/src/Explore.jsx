@@ -1,21 +1,42 @@
 import { useEffect, useState } from "react";
 import { api } from "./api";
+import LeafletMap from "./LeafletMap";
 import "./Explore.css";
 
 const HOW_IT_WORKS = [
   { n: "1", title: "Browse or post", text: "See urgent blood requests near you, or post your own when you need blood." },
-  { n: "2", title: "Get matched", text: "We match requests with compatible donors by blood type and location." },
+  { n: "2", title: "Get matched", text: "Use your location to find the nearest compatible requests by distance." },
   { n: "3", title: "Connect & donate", text: "Accept a request to reveal the contact and coordinate to save a life." },
 ];
 
 const URGENCY_LABEL = { critical: "Critical", urgent: "Urgent", normal: "Normal" };
 
+// Haversine distance in km between two {lat,lng} points.
+function distanceKm(a, b) {
+  const R = 6371;
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
+  const lat1 = (a.lat * Math.PI) / 180;
+  const lat2 = (b.lat * Math.PI) / 180;
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+function fmtKm(km) {
+  return km < 10 ? `${km.toFixed(1)} km` : `${Math.round(km)} km`;
+}
+
 export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLogout }) {
   const [stats, setStats] = useState(null);
   const [requests, setRequests] = useState([]);
   const [error, setError] = useState("");
-  const [revealed, setRevealed] = useState({}); // { [id]: { patient_name, contact_phone } }
+  const [revealed, setRevealed] = useState({});
   const [revealing, setRevealing] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
+  const [locating, setLocating] = useState(false);
+  const [locError, setLocError] = useState("");
 
   useEffect(() => {
     Promise.all([api.publicStats(), api.publicRequests()])
@@ -26,7 +47,6 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
       .catch((e) => setError(e.message));
   }, []);
 
-  // Reveal the contact for a request. Logged-out users are sent to auth first.
   async function accept(id) {
     if (!user) return onAuth("respond");
     setRevealing(id);
@@ -39,6 +59,52 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
       setRevealing(null);
     }
   }
+
+  function findNearest() {
+    if (!navigator.geolocation) {
+      setLocError("Geolocation isn't supported by your browser.");
+      return;
+    }
+    setLocating(true);
+    setLocError("");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocating(false);
+      },
+      () => {
+        setLocError("Couldn't get your location. Please allow location access.");
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
+  // Attach distance (if we know the user's location) and sort nearest-first.
+  const decorated = requests.map((r) => {
+    const hasGeo = r.latitude != null && r.longitude != null;
+    const distance =
+      userLocation && hasGeo
+        ? distanceKm(userLocation, { lat: r.latitude, lng: r.longitude })
+        : null;
+    return { ...r, hasGeo, distance };
+  });
+  const ordered = userLocation
+    ? [...decorated].sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity))
+    : decorated;
+
+  const markers = decorated
+    .filter((r) => r.hasGeo)
+    .map((r) => ({
+      id: r.id,
+      lat: r.latitude,
+      lng: r.longitude,
+      label: r.blood_type,
+      popupHtml:
+        `<b>${r.blood_type}</b> · ${r.units_needed} unit(s)<br>` +
+        `${[r.hospital, r.location].filter(Boolean).join(", ")}` +
+        (r.distance != null ? `<br>~${fmtKm(r.distance)} away` : ""),
+    }));
 
   return (
     <div className="explore">
@@ -65,11 +131,7 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
 
       <section className="ex-hero">
         <h1>Explore SaveLife</h1>
-        <p>
-          {user
-            ? "Browse live blood requests. Accept one to reveal the contact and help."
-            : "Browse live blood requests and see our community — no account needed to look around."}
-        </p>
+        <p>Browse live blood requests on the map and find the ones nearest to you.</p>
       </section>
 
       {/* Stats */}
@@ -80,18 +142,27 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
         <Stat value={stats?.unitsNeeded} label="Units needed" />
       </section>
 
-      {/* Urgent requests */}
+      {/* Urgent requests + map */}
       <section className="ex-section">
         <div className="ex-head">
           <h2>🩸 Urgent blood requests</h2>
-          <span className="ex-readonly">
-            {user ? "Accept to reveal contact" : "Contact hidden · log in to help"}
-          </span>
+          <button className="btn btn-sm btn-outline" disabled={locating} onClick={findNearest}>
+            {locating ? "Locating…" : "📍 Find nearest to me"}
+          </button>
         </div>
+        {locError && <p className="ex-error">{locError}</p>}
+        {userLocation && <p className="ex-muted">Showing distance from your location · nearest first.</p>}
+
+        {/* Live map of all requests */}
+        {markers.length > 0 && (
+          <LeafletMap markers={markers} userLocation={userLocation} height={340} />
+        )}
+
         {error && <p className="ex-error">{error}</p>}
         {!error && requests.length === 0 && <p className="ex-muted">No open requests right now.</p>}
+
         <div className="req-grid">
-          {requests.map((r) => {
+          {ordered.map((r) => {
             const info = revealed[r.id];
             return (
               <div className={`req-card urg-${r.urgency}`} key={r.id}>
@@ -104,6 +175,7 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
                   {r.hospital ? `🏥 ${r.hospital}` : ""}
                   {r.location ? ` · 📍 ${r.location}` : ""}
                 </p>
+                {r.distance != null && <p className="req-distance">🧭 ~{fmtKm(r.distance)} away</p>}
                 <p className={`req-phone ${info ? "revealed" : ""}`}>
                   📞 {info ? <a href={`tel:${info.contact_phone}`}>{info.contact_phone}</a> : "**********"}
                 </p>
