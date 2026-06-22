@@ -26,13 +26,40 @@ async function request(path, { method = "GET", body } = {}) {
   return data;
 }
 
+async function upload(path, formData) {
+  const headers = {};
+  const token = auth.getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`/api${path}`, { method: "POST", headers, body: formData });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Upload failed (${res.status})`);
+  return data;
+}
+
 export const api = {
   // public (no auth) — for the Explore page
   publicStats: () => request("/public/stats"),
-  publicRequests: () => request("/public/requests"),
+  publicRequests: (filters = {}) => {
+    const q = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => { if (v !== "" && v !== false && v != null) q.set(k, v); });
+    const qs = q.toString();
+    return request(`/public/requests${qs ? "?" + qs : ""}`);
+  },
+  publicDonors: (filters = {}) => {
+    const q = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => { if (v !== "" && v !== false && v != null) q.set(k, v); });
+    const qs = q.toString();
+    return request(`/public/donors${qs ? "?" + qs : ""}`);
+  },
+  publicProfile: (id) => request(`/public/profile/${id}`),
 
-  // reveal a request's contact (auth required)
+  // reveal a request's contact (auth required) — also fires push notification to requester
   requestContact: (id) => request(`/requests/${id}/contact`),
+
+  // blood / plasma requests
+  createRequest: (payload) => request("/requests", { method: "POST", body: payload }),
+  myRequests: () => request("/requests/mine"),
+  cancelRequest: (id) => request(`/requests/${id}`, { method: "DELETE" }),
 
   // hospitals & ambulances
   publicHospitals: () => request("/public/hospitals"),
@@ -45,6 +72,22 @@ export const api = {
   login: (payload) => request("/auth/login", { method: "POST", body: payload }),
   me: () => request("/auth/me"),
   updateProfile: (payload) => request("/auth/profile", { method: "PUT", body: payload }),
+  testEmail: () => request("/auth/test-email", { method: "POST" }),
+
+  // uploads
+  uploadAvatar: (file) => {
+    const fd = new FormData();
+    fd.append("avatar", file);
+    return upload("/uploads/avatar", fd);
+  },
+  uploadDocument: (file, docType) => {
+    const fd = new FormData();
+    fd.append("document", file);
+    fd.append("doc_type", docType);
+    return upload("/uploads/document", fd);
+  },
+  myDocuments: () => request("/uploads/documents"),
+  deleteDocument: (id) => request(`/uploads/documents/${id}`, { method: "DELETE" }),
 
   // emergency contacts
   listContacts: () => request("/contacts"),

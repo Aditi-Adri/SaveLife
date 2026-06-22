@@ -5,6 +5,7 @@ import Explore from "./Explore";
 import OrganInfo from "./OrganInfo";
 import Hospitals from "./Hospitals";
 import Ambulance from "./Ambulance";
+import Profile from "./Profile";
 import "./App.css";
 
 const INTENT_MESSAGE = {
@@ -17,6 +18,7 @@ const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [emailNotifications, setEmailNotifications] = useState(false);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("home"); // home | explore | organ | auth
   const [authIntent, setAuthIntent] = useState(null);
@@ -28,7 +30,7 @@ export default function App() {
     }
     api
       .me()
-      .then((d) => setUser(d.user))
+      .then((d) => { setUser(d.user); setEmailNotifications(d.emailNotifications ?? false); })
       .catch(() => auth.clear())
       .finally(() => setLoading(false));
   }, []);
@@ -64,16 +66,13 @@ export default function App() {
       return <Ambulance onBack={() => setView("explore")} />;
     if (view === "profile")
       return (
-        <div className="app">
-          <header className="header">
-            <h1>🩺 SaveLife</h1>
-            <div className="userbar">
-              <button className="ghost" onClick={() => setView("explore")}>← Explore</button>
-              <button className="ghost" onClick={logout}>Log out</button>
-            </div>
-          </header>
-          <DonorProfile user={user} />
-        </div>
+        <Profile
+          user={user}
+          emailNotifications={emailNotifications}
+          onBack={() => setView("explore")}
+          onLogout={logout}
+          onUserUpdate={(u) => setUser(u)}
+        />
       );
     return (
       <Explore
@@ -373,61 +372,3 @@ function RegisterForm({ onRegistered, switchToLogin }) {
   );
 }
 
-/* ---------------------------- Donor profile ---------------------------- */
-
-function DonorProfile({ user }) {
-  const rows = [
-    ["User ID", user.user_code],
-    ["Name", user.name],
-    ["Phone", user.phone],
-    ["Email", user.email],
-    ["Age", user.age],
-    ["Gender", user.gender],
-    ["Weight", user.weight ? `${user.weight} kg` : null],
-    ["Blood group", user.blood_type],
-    ["Times donated", user.donation_count ?? 0],
-    ["Last donation", user.last_donation ? new Date(user.last_donation).toLocaleDateString() : null],
-    ["Donation history", user.donation_history],
-    ["Drug addicted", user.drug_addicted ? "Yes" : "No"],
-    ["Medical conditions", user.medical_conditions],
-    ["Member since", user.created_at ? new Date(user.created_at).toLocaleDateString() : null],
-  ];
-
-  const initials = (user.name || "?")
-    .split(" ")
-    .map((s) => s[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
-  return (
-    <section className="card profile-card">
-      <div className="profile-head">
-        <div className="avatar">{initials}</div>
-        <div>
-          <h2>{user.name}</h2>
-          <p className="hint">
-            {user.blood_type ? `🩸 ${user.blood_type} · ` : ""}Donor ID: {user.user_code}
-          </p>
-        </div>
-      </div>
-
-      <table className="profile-table">
-        <tbody>
-          {rows.map(([label, value]) => (
-            <tr key={label}>
-              <th>{label}</th>
-              <td>
-                {value === null || value === undefined || value === "" ? (
-                  <span className="muted">—</span>
-                ) : (
-                  String(value)
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </section>
-  );
-}

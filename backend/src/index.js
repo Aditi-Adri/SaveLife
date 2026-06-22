@@ -11,6 +11,7 @@ import alertRoutes from "./routes/alerts.js";
 import publicRoutes from "./routes/public.js";
 import requestRoutes from "./routes/requests.js";
 import hospitalRoutes from "./routes/hospitals.js";
+import uploadRoutes from "./routes/uploads.js";
 import { initDb } from "./db/initDb.js";
 
 dotenv.config();
@@ -29,12 +30,17 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", service: "SaveLife API", time: new Date().toISOString() });
 });
 
+// Serve uploaded files (avatars, documents) as static assets.
+const uploadsDir = path.resolve(__dirname, "../uploads");
+app.use("/uploads", express.static(uploadsDir));
+
 app.use("/api/public", publicRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/hospitals", hospitalRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/alerts", alertRoutes);
+app.use("/api/uploads", uploadRoutes);
 
 // Unknown API routes -> JSON 404
 app.use("/api", (req, res) => {
