@@ -33,6 +33,11 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS last_donation      DATE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS donation_history   TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS drug_addicted      BOOLEAN DEFAULT false;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS medical_conditions TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url         VARCHAR(500);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS religion           VARCHAR(30);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS latitude           DOUBLE PRECISION;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS longitude          DOUBLE PRECISION;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS location_text      VARCHAR(255);
 
 -- People to notify when a user triggers an SOS.
 CREATE TABLE IF NOT EXISTS emergency_contacts (
@@ -88,8 +93,9 @@ CREATE TABLE IF NOT EXISTS blood_requests (
 CREATE INDEX IF NOT EXISTS idx_requests_status ON blood_requests(status);
 
 -- Patch older installs that created blood_requests before geo columns existed.
-ALTER TABLE blood_requests ADD COLUMN IF NOT EXISTS latitude  DOUBLE PRECISION;
-ALTER TABLE blood_requests ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION;
+ALTER TABLE blood_requests ADD COLUMN IF NOT EXISTS latitude      DOUBLE PRECISION;
+ALTER TABLE blood_requests ADD COLUMN IF NOT EXISTS longitude     DOUBLE PRECISION;
+ALTER TABLE blood_requests ADD COLUMN IF NOT EXISTS donation_type VARCHAR(20) NOT NULL DEFAULT 'blood';
 
 -- Hospitals users can browse and book.
 CREATE TABLE IF NOT EXISTS hospitals (
@@ -135,3 +141,16 @@ CREATE TABLE IF NOT EXISTS ambulance_services (
 );
 
 ALTER TABLE ambulance_services ADD COLUMN IF NOT EXISTS email VARCHAR(160);
+
+-- Documents and certificates uploaded by donors.
+CREATE TABLE IF NOT EXISTS user_documents (
+  id           SERIAL PRIMARY KEY,
+  user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  doc_type     VARCHAR(40) NOT NULL DEFAULT 'other'
+               CHECK (doc_type IN ('certificate', 'medical', 'identity', 'other')),
+  file_name    VARCHAR(255) NOT NULL,
+  file_path    VARCHAR(500) NOT NULL,
+  uploaded_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_docs_user ON user_documents(user_id);
