@@ -138,11 +138,3 @@ SaveLife/
         └── api.js             # API client + geolocation helper
 ```
 
----
-
-## Ideas for next steps
-
-- Real notifications to emergency contacts (Twilio SMS / email).
-- Live map of active alerts (Leaflet / Google Maps).
-- WebSockets for instant responder updates instead of polling.
-- Distance-based alert filtering for responders.
