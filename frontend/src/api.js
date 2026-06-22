@@ -62,10 +62,22 @@ export const api = {
   cancelRequest: (id) => request(`/requests/${id}`, { method: "DELETE" }),
 
   // hospitals & ambulances
+  registerHospital: (payload) => request("/hospitals", { method: "POST", body: payload }),
   publicHospitals: () => request("/public/hospitals"),
   publicAmbulances: () => request("/public/ambulances"),
   bookHospital: (id, payload) => request(`/hospitals/${id}/book`, { method: "POST", body: payload }),
   myBookings: () => request("/hospitals/bookings"),
+  bookingDocuments: (bookingId) => request(`/hospitals/bookings/${bookingId}/documents`),
+  uploadBookingDocs: (bookingId, files, docLabel) => {
+    const fd = new FormData();
+    files.forEach(f => fd.append("docs", f));
+    fd.append("doc_label", docLabel || "medical");
+    const headers = {};
+    const token = auth.getToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return fetch(`/api/hospitals/bookings/${bookingId}/documents`, { method: "POST", headers, body: fd })
+      .then(r => r.json());
+  },
 
   // auth
   register: (payload) => request("/auth/register", { method: "POST", body: payload }),

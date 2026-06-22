@@ -130,7 +130,7 @@ router.get("/hospitals", async (req, res) => {
   try {
     const result = await query(
       `SELECT id, name, city, address, phone, email, beds_available, has_blood_bank,
-              has_ambulance, latitude, longitude
+              has_ambulance, latitude, longitude, hospital_type, consultation_fee
          FROM hospitals ORDER BY city, name`
     );
     res.json({ hospitals: result.rows });

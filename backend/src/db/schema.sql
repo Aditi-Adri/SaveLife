@@ -113,21 +113,100 @@ CREATE TABLE IF NOT EXISTS hospitals (
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS email VARCHAR(160);
+ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS email            VARCHAR(160);
+ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS hospital_type   VARCHAR(20) NOT NULL DEFAULT 'public'
+                                               CHECK (hospital_type IN ('public','private'));
+ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS consultation_fee INTEGER DEFAULT 0;
+
+-- Auto-classify well-known private hospitals in Bangladesh
+UPDATE hospitals SET hospital_type = 'private'
+WHERE name ILIKE '%square%' OR name ILIKE '%united%' OR name ILIKE '%apollo%'
+   OR name ILIKE '%evercare%' OR name ILIKE '%labaid%' OR name ILIKE '%popular%'
+   OR name ILIKE '%clinic%' OR name ILIKE '%ibn sina%' OR name ILIKE '%delta%'
+   OR name ILIKE '%holy family%' OR name ILIKE '%birdem%' OR name ILIKE '%national heart%'
+   OR name ILIKE '%medinova%' OR name ILIKE '%diagnostic%' OR name ILIKE '%city%'
+   OR name ILIKE '%green life%' OR name ILIKE '%anwar khan%' OR name ILIKE '%asgar ali%';
 
 CREATE TABLE IF NOT EXISTS hospital_bookings (
-  id            SERIAL PRIMARY KEY,
-  user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  hospital_id   INTEGER NOT NULL REFERENCES hospitals(id) ON DELETE CASCADE,
-  patient_name  VARCHAR(120) NOT NULL,
-  reason        VARCHAR(200),
-  booking_date  DATE,
-  status        VARCHAR(20) NOT NULL DEFAULT 'pending'
-                CHECK (status IN ('pending', 'confirmed', 'cancelled')),
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+  id                        SERIAL PRIMARY KEY,
+  user_id                   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  hospital_id               INTEGER NOT NULL REFERENCES hospitals(id) ON DELETE CASCADE,
+
+  -- Patient details
+  patient_name              VARCHAR(120) NOT NULL,
+  patient_age               INTEGER,
+  patient_gender            VARCHAR(20),
+  patient_nid               VARCHAR(50),
+  contact_phone             VARCHAR(20),
+
+  -- Admission details
+  admission_type            VARCHAR(20) NOT NULL DEFAULT 'planned'
+                            CHECK (admission_type IN ('emergency','planned','day_care')),
+  ward_type                 VARCHAR(20) NOT NULL DEFAULT 'general'
+                            CHECK (ward_type IN ('general','semi_cabin','cabin','icu','emergency')),
+  booking_date              DATE,
+  expected_days             INTEGER NOT NULL DEFAULT 1,
+  reason                    VARCHAR(200),
+  symptoms                  TEXT,
+  referred_doctor           VARCHAR(120),
+
+  -- Emergency contact
+  emergency_contact_name    VARCHAR(120),
+  emergency_contact_phone   VARCHAR(20),
+  emergency_contact_rel     VARCHAR(60),
+
+  -- Insurance
+  insurance_provider        VARCHAR(100),
+  insurance_number          VARCHAR(50),
+
+  special_requirements      TEXT,
+
+  -- Payment (private hospitals only)
+  advance_paid              BOOLEAN NOT NULL DEFAULT false,
+  advance_amount            NUMERIC(10,2) DEFAULT 0,
+  payment_method            VARCHAR(30),
+  payment_ref               VARCHAR(50),
+
+  status                    VARCHAR(20) NOT NULL DEFAULT 'pending'
+                            CHECK (status IN ('pending','confirmed','cancelled')),
+  created_at                TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS idx_bookings_user ON hospital_bookings(user_id);
+
+-- Patch older hospital_bookings that were created before the full schema
+ALTER TABLE hospital_bookings ADD COLUMN IF NOT EXISTS patient_age             INTEGER;
+ALTER TABLE hospital_bookings ADD COLUMN IF NOT EXISTS patient_gender          VARCHAR(20);
+ALTER TABLE hospital_bookings ADD COLUMN IF NOT EXISTS patient_nid             VARCHAR(50);
+ALTER TABLE hospital_bookings ADD COLUMN IF NOT EXISTS contact_phone           VARCHAR(20);
+ALTER TABLE hospital_bookings ADD COLUMN IF NOT EXISTS admission_type          VARCHAR(20) NOT NULL DEFAULT 'planned';
+ALTER TABLE hospital_bookings ADD COLUMN IF NOT EXISTS ward_type               VARCHAR(20) NOT NULL DEFAULT 'general';
+ALTER TABLE hospital_bookings ADD COLUMN IF NOT EXISTS expected_days           INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE hospital_bookings ADD COLUMN IF NOT EXISTS symptoms                TEXT;
+ALTER TABLE hospital_bookings ADD COLUMN IF NOT EXISTS referred_doctor         VARCHAR(120);
+ALTER TABLE hospital_bookings ADD COLUMN IF NOT EXISTS emergency_contact_name  VARCHAR(120);
+ALTER TABLE hospital_bookings ADD COLUMN IF NOT EXISTS emergency_contact_phone VARCHAR(20);
+ALTER TABLE hospital_bookings ADD COLUMN IF NOT EXISTS emergency_contact_rel   VARCHAR(60);
+ALTER TABLE hospital_bookings ADD COLUMN IF NOT EXISTS insurance_provider      VARCHAR(100);
+ALTER TABLE hospital_bookings ADD COLUMN IF NOT EXISTS insurance_number        VARCHAR(50);
+ALTER TABLE hospital_bookings ADD COLUMN IF NOT EXISTS special_requirements    TEXT;
+ALTER TABLE hospital_bookings ADD COLUMN IF NOT EXISTS advance_paid            BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE hospital_bookings ADD COLUMN IF NOT EXISTS advance_amount          NUMERIC(10,2) DEFAULT 0;
+ALTER TABLE hospital_bookings ADD COLUMN IF NOT EXISTS payment_method          VARCHAR(30);
+ALTER TABLE hospital_bookings ADD COLUMN IF NOT EXISTS payment_ref             VARCHAR(50);
+
+-- Medical documents attached to a booking
+CREATE TABLE IF NOT EXISTS booking_documents (
+  id           SERIAL PRIMARY KEY,
+  booking_id   INTEGER NOT NULL REFERENCES hospital_bookings(id) ON DELETE CASCADE,
+  user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  file_name    VARCHAR(255) NOT NULL,
+  file_path    VARCHAR(500) NOT NULL,
+  doc_label    VARCHAR(40) DEFAULT 'medical',
+  uploaded_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_bdocs_booking ON booking_documents(booking_id);
 
 -- Ambulance services for the emergency "call ambulance" page.
 CREATE TABLE IF NOT EXISTS ambulance_services (
