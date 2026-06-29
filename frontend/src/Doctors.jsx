@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { api } from "./api";
 import { generateAppointmentSlip } from "./generateSlip";
+import ThemeToggle from "./ThemeToggle";
 import "./Doctors.css";
 
 const SPECIALTIES = [
@@ -360,6 +361,7 @@ export default function Doctors({ user, onBack, onAuth }) {
       <header className="dr-nav">
         <button className="dr-back-btn" onClick={onBack}>← Back</button>
         <div className="dr-brand">🩺 <span>SaveLife</span> <span className="dr-brand-sep">·</span> <span className="dr-brand-sub">Find Doctors</span></div>
+        <ThemeToggle />
         {user && (
           <div className="dr-nav-tabs">
             <button className={`dr-nav-tab ${tab === "find" ? "active" : ""}`} onClick={() => setTab("find")}>Find Doctors</button>

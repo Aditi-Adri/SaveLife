@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { api } from "./api";
 import LeafletMap from "./LeafletMap";
+import ThemeToggle from "./ThemeToggle";
 import "./Explore.css";
 
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
@@ -142,6 +143,7 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
           <a className="ex-navlink" onClick={onDoctors} role="button">👨‍⚕️ Doctors</a>
           <a className="ex-navlink amb-link" onClick={onAmbulance} role="button">🚑 Ambulance</a>
           <a className="ex-navlink" onClick={onOrgan} role="button">Organ Donation</a>
+          <ThemeToggle />
           {user ? (
             <>
               <span className="ex-greet">Hi, {user.name.split(" ")[0]}</span>

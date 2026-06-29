@@ -3,8 +3,6 @@ import "./ThemeToggle.css";
 
 const KEY = "savelife_theme";
 
-// Floating day/night toggle. The current theme lives on <html data-theme>,
-// which is set before paint by the inline script in index.html.
 export default function ThemeToggle() {
   const [theme, setTheme] = useState(
     () => document.documentElement.dataset.theme || "dark"
@@ -13,22 +11,21 @@ export default function ThemeToggle() {
   function toggle() {
     const next = theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
-    try {
-      localStorage.setItem(KEY, next);
-    } catch {
-      /* ignore storage errors */
-    }
+    try { localStorage.setItem(KEY, next); } catch {}
     setTheme(next);
   }
+
+  const isDark = theme === "dark";
 
   return (
     <button
       className="theme-toggle"
       onClick={toggle}
-      title={theme === "dark" ? "Switch to day mode" : "Switch to night mode"}
+      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
       aria-label="Toggle day/night mode"
     >
-      {theme === "dark" ? "☀️" : "🌙"}
+      <span className="tt-icon">{isDark ? "☀" : "🌙"}</span>
+      <span className="tt-label">{isDark ? "Day" : "Night"}</span>
     </button>
   );
 }

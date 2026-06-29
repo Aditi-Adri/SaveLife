@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "./api";
+import ThemeToggle from "./ThemeToggle";
 import "./Ambulance.css";
 
 export default function Ambulance({ onBack }) {
@@ -20,6 +21,8 @@ export default function Ambulance({ onBack }) {
     <div className="amb">
       <header className="amb-nav">
         <a className="brand" onClick={onBack} role="button">🩺 <span>SaveLife</span></a>
+        <div style={{ flex: 1 }} />
+        <ThemeToggle />
         <button className="btn btn-outline" onClick={onBack}>← Back</button>
       </header>
 

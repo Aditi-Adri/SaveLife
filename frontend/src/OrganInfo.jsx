@@ -1,3 +1,4 @@
+import ThemeToggle from "./ThemeToggle";
 import "./OrganInfo.css";
 
 const ORGANS = [
@@ -29,6 +30,8 @@ export default function OrganInfo({ onBack, onAuth }) {
         <a className="brand" onClick={onBack} role="button">
           🩺 <span>SaveLife</span>
         </a>
+        <div style={{ flex: 1 }} />
+        <ThemeToggle />
         <button className="btn btn-outline" onClick={onBack}>← Back to Explore</button>
       </header>
 

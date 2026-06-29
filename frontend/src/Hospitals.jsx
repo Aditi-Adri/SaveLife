@@ -3,6 +3,7 @@ import { api } from "./api";
 import LeafletMap from "./LeafletMap";
 import { distanceKm, fmtKm, getCurrentLocation, fetchRoute } from "./geo";
 import { generatePrivateSlip, generatePublicSlip } from "./generateSlip";
+import ThemeToggle from "./ThemeToggle";
 import "./Hospitals.css";
 
 const FACILITIES = [
@@ -108,6 +109,8 @@ export default function Hospitals({ user, onBack, onAuth }) {
     <div className="hosp">
       <header className="hosp-nav">
         <a className="brand" onClick={onBack} role="button">🩺 <span>SaveLife</span></a>
+        <div style={{ flex: 1 }} />
+        <ThemeToggle />
         <button className="btn btn-outline" onClick={onBack}>← Back</button>
       </header>
 

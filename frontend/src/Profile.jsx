@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { api } from "./api";
+import ThemeToggle from "./ThemeToggle";
 import "./Profile.css";
 
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
@@ -153,6 +154,7 @@ export default function Profile({ user, emailNotifications, onBack, onLogout, on
           🩺 <span>SaveLife</span>
         </a>
         <div className="pf-nav-right">
+          <ThemeToggle />
           <button className="pf-btn pf-outline" onClick={onBack}>← Explore</button>
           <button className="pf-btn pf-danger" onClick={onLogout}>Log out</button>
         </div>

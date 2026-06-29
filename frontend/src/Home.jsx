@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./Home.css";
+import ThemeToggle from "./ThemeToggle";
 
 const HOTLINE = { display: "16789", tel: "16789" };
 
@@ -101,6 +102,7 @@ export default function Home({ onGetStarted }) {
             <strong>{HOTLINE.display}</strong>
           </span>
         </a>
+        <ThemeToggle />
         <button className="btn btn-primary" onClick={onGetStarted}>Log in / Sign up</button>
       </header>
 
