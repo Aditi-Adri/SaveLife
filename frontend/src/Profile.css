@@ -569,6 +569,22 @@
 .ach-empty p { color: var(--muted); font-size: 0.9rem; }
 
 /* ── Responsive ── */
+@media (max-width: 768px) {
+  /* Profile header stacks avatar + info */
+  .pf-hero { flex-direction: column; align-items: flex-start; gap: 16px; padding: 28px 16px 16px; }
+  .avatar-ring { width: 80px; height: 80px; }
+  .avatar-letters { font-size: 1.7rem; }
+  .pf-hero-text h1 { font-size: 1.4rem; }
+
+  /* Stats */
+  .pf-stats-row { flex-wrap: wrap; }
+  .pf-stat { min-width: calc(50% - 1px); }
+
+  /* Tabs: horizontal scroll */
+  .pf-tabs { overflow-x: auto; scrollbar-width: none; }
+  .pf-tabs::-webkit-scrollbar { display: none; }
+  .pf-tab { white-space: nowrap; padding: 12px 14px; font-size: 0.88rem; }
+}
 @media (max-width: 600px) {
   .pf-hero { flex-direction: column; align-items: flex-start; gap: 18px; }
   .ef-grid { grid-template-columns: 1fr; }
@@ -583,4 +599,18 @@
   .cert-body { padding: 20px 18px 18px; }
   .cert-name { font-size: 1.3rem; }
   .cert-footer { flex-direction: column; gap: 6px; text-align: center; }
+
+  /* Form groups stack */
+  .ec-form-row { flex-direction: column; }
+  .ec-input { min-width: 0; width: 100%; }
+
+  /* Action buttons: ensure touch targets */
+  .pf-btn { min-height: 44px; padding: 10px 16px; }
+  .ef-actions { flex-direction: column; gap: 8px; }
+  .ef-actions .pf-btn { width: 100%; }
+
+  /* Tabs: scroll on very small screens */
+  .pf-tabs { overflow-x: auto; scrollbar-width: none; padding: 0 16px; }
+  .pf-tabs::-webkit-scrollbar { display: none; }
+  .pf-tab { white-space: nowrap; font-size: 0.85rem; padding: 12px 12px; }
 }

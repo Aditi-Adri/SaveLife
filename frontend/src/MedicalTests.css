@@ -232,9 +232,53 @@
 .mt-bk-dl:hover, .mt-bk-upload:hover { opacity: .85; }
 
 /* ── Responsive ──────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Nav */
+  .mt-nav { padding: 12px 14px; }
+
+  /* Hero */
+  .mt-hero { padding: 22px 16px 20px; }
+  .mt-hero h1 { font-size: 1.3rem; }
+
+  /* Tabs: equal flex */
+  .mt-tab { font-size: 0.85rem; padding: 11px 8px; }
+
+  /* Cards: tighter padding */
+  .mt-cards { padding: 10px 12px 0; }
+  .mt-card-head { padding: 12px 14px; }
+  .mt-card-name { font-size: 0.92rem; }
+
+  /* Booking modal: already bottom-sheet (align-items: flex-end) — keep it */
+  .mt-modal { padding: 20px 16px; border-radius: 20px 20px 0 0; }
+  .mt-modal-header h2 { font-size: 1rem; }
+
+  /* Form rows */
+  .mt-form-row2 { grid-template-columns: 1fr; }
+  .mt-form-row3 { grid-template-columns: 1fr 1fr; }
+
+  /* My bookings */
+  .mt-my { padding: 12px; }
+  .mt-bk-actions { flex-direction: column; gap: 8px; }
+  .mt-bk-dl, .mt-bk-upload { display: block; text-align: center; min-height: 44px; line-height: 1.5; padding: 10px 16px; }
+
+  /* Sort row: wrap */
+  .mt-sort-row { flex-wrap: wrap; }
+  .mt-sort-btn { flex: 1; text-align: center; min-height: 44px; }
+
+  /* Buttons */
+  .mt-center-book { min-height: 44px; padding: 8px 12px; font-size: 0.82rem; }
+  .mt-form-submit { min-height: 48px; }
+  .mt-login-btn { min-height: 48px; }
+}
 @media (max-width: 480px) {
   .mt-form-row2 { grid-template-columns: 1fr; }
   .mt-form-row3 { grid-template-columns: 1fr 1fr; }
   .mt-card-head { flex-wrap: wrap; }
-  .mt-card-right { flex-direction: row; align-items: center; gap: 8px; }
+  .mt-card-right { flex-direction: row; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .mt-card-right .mt-card-price { flex: none; }
+  .mt-filters { padding: 12px 12px 0; }
+
+  /* Center rows: stack on very small */
+  .mt-center-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .mt-center-book { width: 100%; }
 }

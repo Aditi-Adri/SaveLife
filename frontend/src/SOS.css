@@ -326,6 +326,26 @@
 .sos-safe-btn:hover { background: #047857; }
 
 /* ── Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Floating button: keep accessible */
+  .sos-fab { bottom: 20px; left: 20px; padding: 11px 18px; font-size: 0.93rem; }
+
+  /* Active emergency panel: full-width */
+  .sos-active-panel { max-width: 100%; padding: 4px 0 12px; }
+
+  /* Emergency numbers: full-width grid */
+  .sos-nums-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .sos-num-btn { padding: 14px 8px; min-height: 44px; }
+
+  /* Safe button: 44px touch target */
+  .sos-safe-btn { padding: 14px; min-height: 44px; }
+
+  /* Buttons */
+  .sos-btn-go { min-height: 44px; padding: 12px 22px; }
+  .sos-btn-cancel { min-height: 44px; }
+  .sos-dialog-actions { flex-direction: column; gap: 8px; }
+  .sos-btn-go, .sos-btn-cancel { width: 100%; }
+}
 @media (max-width: 480px) {
   .sos-fab { bottom: 16px; left: 16px; padding: 10px 15px; font-size: 0.9rem; }
   .sos-dialog { padding: 28px 18px; }
@@ -333,4 +353,11 @@
   .sos-active-header h1 { font-size: 1.15rem; }
   .sos-overlay-inner { padding: 16px 12px; }
   .sos-card { padding: 12px 14px; }
+
+  /* Contacts: allow wrapping */
+  .sos-contact-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .sos-call-pill { align-self: flex-start; }
+
+  /* Maps button: full width */
+  .sos-maps-btn { display: block; text-align: center; align-self: stretch; }
 }

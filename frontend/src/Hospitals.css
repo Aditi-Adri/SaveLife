@@ -431,6 +431,29 @@
 .rh-detect-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* Responsive */
+@media (max-width: 768px) {
+  /* Hospital grid: 1-col */
+  .hosp-grid { grid-template-columns: 1fr; }
+
+  /* Nav */
+  .hosp-nav { padding: 12px 16px; }
+
+  /* Hero */
+  .hosp-hero { padding: 36px 16px 12px; }
+
+  /* Booking wizard: near-full-screen */
+  .bw-backdrop { padding: 8px; align-items: flex-end; }
+  .bw-card { border-radius: 20px 20px 0 0; max-height: 96vh; max-width: 100%; }
+
+  /* Bed/ward grid: 2-col */
+  .ward-cards { grid-template-columns: repeat(2, 1fr); }
+  .pay-method-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Stepper: scrollable */
+  .bw-stepper { overflow-x: auto; scrollbar-width: none; }
+  .bw-stepper::-webkit-scrollbar { display: none; }
+  .bw-step-label { display: none; }
+}
 @media (max-width: 540px) {
   .bw-grid { grid-template-columns: 1fr; }
   .bf-wrap.full { grid-column: 1; }
@@ -438,4 +461,28 @@
   .ward-cards { grid-template-columns: repeat(2, 1fr); }
   .bw-stepper { overflow-x: auto; }
   .bw-step-label { display: none; }
+
+  /* Booking list rows */
+  .booking-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .bk-slip-btn { width: 100%; text-align: center; }
+
+  /* Summary rows */
+  .sum-row { flex-direction: column; gap: 2px; }
+  .sum-value { text-align: left; }
+
+  /* Pay banner */
+  .bw-pay-banner { flex-direction: column; gap: 0; }
+  .bw-pay-banner > div:last-child { border-left: none; border-top: 1px solid var(--line); }
+
+  /* Buttons */
+  .bw-btn { min-height: 44px; }
+  .hosp-actions { gap: 6px; }
+  .hosp-section { padding: 12px 16px; }
+}
+@media (max-width: 480px) {
+  /* Bed/ward and payment: full-width 1-col */
+  .ward-cards { grid-template-columns: 1fr; }
+  .pay-method-grid { grid-template-columns: repeat(2, 1fr); }
+  .hosp-controls { flex-direction: column; align-items: stretch; }
+  .facility-chips { flex-wrap: wrap; }
 }

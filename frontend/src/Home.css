@@ -443,15 +443,48 @@ a.contact-item:hover { border-color: var(--accent); }
 @media (max-width: 860px) {
   .contact-grid { grid-template-columns: 1fr; }
   .hero-stats { border-radius: 12px; }
+  .service-grid { grid-template-columns: repeat(2, 1fr); }
+  .steps { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 640px) {
+  /* Nav */
   .nav-links { display: none; }
   .nav { padding: 12px 14px; gap: 10px; }
-  .hero { padding: 72px 16px 52px; }
-  .hero-stat { min-width: 90px; padding: 16px 10px; }
-  .hero-stat strong { font-size: 1.5rem; }
   .hotline-text { display: none; }
-  .qs-box { padding: 36px 22px; }
+
+  /* Hero */
+  .hero { padding: 64px 16px 44px; }
+  .tagline { font-size: clamp(2rem, 8vw, 2.8rem); }
+  .subtitle { font-size: 0.95rem; }
+  .hero-cta { gap: 10px; }
+  .btn-lg { padding: 12px 20px; font-size: 0.95rem; }
+
+  /* Stats */
+  .hero-stats { flex-wrap: wrap; border-radius: 12px; }
+  .hero-stat { min-width: calc(50% - 1px); padding: 16px 10px; border-right: none; border-bottom: 1px solid var(--line); }
+  .hero-stat:nth-child(odd) { border-right: 1px solid var(--line); }
+  .hero-stat:nth-last-child(-n+2) { border-bottom: none; }
+  .hero-stat strong { font-size: 1.5rem; }
+  .hero-stat span { font-size: 0.78rem; }
+
+  /* Sections */
+  .section { padding: 52px 16px; }
+  .section-head { margin-bottom: 36px; }
+
+  /* Services & Steps — 1-col */
+  .service-grid { grid-template-columns: 1fr; }
+  .steps { grid-template-columns: 1fr; }
+
+  /* Trust / Cards grid — 1-col */
+  .cards { grid-template-columns: 1fr; }
+
+  /* Quick Start */
+  .qs-box { padding: 32px 18px; }
   .qs-steps { flex-direction: column; }
   .qs-arrow { transform: rotate(90deg); }
+
+  /* CTA / Footer */
+  .footer { padding: 40px 16px; }
+  .footer-services { gap: 10px; }
+  .footer-links { gap: 14px; }
 }

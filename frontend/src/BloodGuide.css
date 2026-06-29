@@ -439,14 +439,64 @@
 .op-print-btn:hover { opacity: .88; }
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .bgg-nav { padding: 0 16px; }
+  .bgg-hero { padding: 36px 16px 24px; }
+  .bgg-section { padding: 24px 14px 60px; }
+
+  /* Compat grid: 4-col stays, just shrink cards */
+  .bgg-compat-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .bgg-compat-card { padding: 10px 4px; }
+
+  /* Organ grid: 2-col on tablet */
+  .bgg-organ-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Pledge box */
+  .bgg-pledge-box { padding: 24px 18px; }
+  .op-form-wrap { padding: 20px 16px; }
+
+  /* ABO table */
+  .bgg-abo-row { grid-template-columns: 80px 20px 1fr; }
+  .bgg-abo-note { display: none; }
+}
 @media (max-width: 600px) {
-  .bgg-tabs { overflow-x: auto; }
-  .bgg-tab  { padding: 12px 14px; font-size: 0.82rem; }
-  .bgg-compat-grid { grid-template-columns: repeat(4, 1fr); }
+  /* Tabs: horizontal scroll */
+  .bgg-tabs { overflow-x: auto; scrollbar-width: none; flex-wrap: nowrap; }
+  .bgg-tabs::-webkit-scrollbar { display: none; }
+  .bgg-tab  { padding: 12px 14px; font-size: 0.82rem; flex-shrink: 0; }
+
+  /* Blood type picker buttons */
+  .bgg-type-btn { width: 58px; height: 58px; font-size: 1.05rem; border-radius: 12px; }
+
+  /* Compat grid: 4 across (shrunk) */
+  .bgg-compat-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .bgg-compat-card { padding: 8px 3px; gap: 4px; }
+  .bgg-compat-drop { width: 28px; height: 38px; }
+  .bgg-compat-type { font-size: 0.82rem; }
+
+  /* Organ grid: 1-col on mobile */
   .bgg-organ-grid  { grid-template-columns: 1fr; }
+
+  /* ABO table */
   .bgg-abo-row     { grid-template-columns: 80px 20px 1fr; }
   .bgg-abo-note    { display: none; }
+
+  /* Banks */
   .bgg-banks-grid  { grid-template-columns: 1fr; }
-  .bgg-type-btn    { width: 62px; height: 62px; font-size: 1.1rem; }
-  .bgg-matrix      { font-size: 0.6rem; }
+
+  /* Matrix: small font */
+  .bgg-matrix { font-size: 0.6rem; }
+  .bgg-mcell { height: 28px; }
+
+  /* Pledge box */
+  .bgg-pledge-box { padding: 20px 14px; }
+  .op-form-wrap { padding: 18px 14px; }
+  .op-cert-body { padding: 20px 16px 16px; }
+  .op-cert-name { font-size: 1.4rem; }
+  .op-cert-footer { flex-direction: column; gap: 10px; }
+  .op-cert-sig { text-align: left; }
+
+  /* Interval cards */
+  .bgg-interval-list { gap: 8px; }
+  .bgg-interval-card { min-width: 0; padding: 12px 10px; }
 }

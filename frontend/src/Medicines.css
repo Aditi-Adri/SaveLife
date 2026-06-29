@@ -789,14 +789,45 @@
 .mo-date { font-size: 0.74rem; color: var(--muted); }
 
 /* ─── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Medicine grid: 2-col on tablet */
+  .med-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .med-grid-section { padding: 16px; }
+  .med-nav { padding: 10px 16px; }
+  .med-tab-bar { padding: 8px 16px; }
+  .med-cat-bar { padding: 10px 16px; }
+  .med-toolbar { padding: 10px 16px; }
+  .med-hero { padding: 32px 16px 24px; }
+}
 @media (max-width: 640px) {
+  /* Grid: 2-col */
   .med-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .med-grid-section { padding: 14px; }
+
+  /* Checkout modal: bottom-sheet */
+  .co-backdrop { align-items: flex-end; padding: 0; }
+  .co-card { border-radius: 20px 20px 0 0; max-height: 92vh; max-width: 100%; }
   .co-row { flex-direction: column; }
   .co-payment-grid { grid-template-columns: 1fr; }
-  .med-toolbar { flex-wrap: wrap; }
-  .mo-row { flex-direction: column; align-items: flex-start; }
-  .mo-right { align-items: flex-start; }
+
+  /* Toolbar */
+  .med-toolbar { flex-wrap: wrap; gap: 8px; }
+  .med-search { flex: 1 1 100%; }
+
+  /* Tab bar: scroll */
+  .med-tab-bar { overflow-x: auto; scrollbar-width: none; flex-wrap: nowrap; }
+  .med-tab-bar::-webkit-scrollbar { display: none; }
+  .med-tab { flex-shrink: 0; }
+
+  /* Order rows */
+  .mo-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .mo-right { align-items: flex-start; flex-direction: row; flex-wrap: wrap; gap: 6px; }
+
+  /* Cart panel: full width */
+  .cart-panel { width: 100%; }
+
+  /* Buttons: 44px touch target */
+  .med-btn-add, .med-btn-login, .cart-checkout-btn, .co-submit-btn { min-height: 44px; }
 }
 @media (max-width: 380px) {
   .med-grid { grid-template-columns: 1fr; }

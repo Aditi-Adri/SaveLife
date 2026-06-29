@@ -156,11 +156,41 @@
 }
 
 /* ── Responsive ── */
+@media (max-width: 640px) {
+  /* Nav */
+  .lb-nav { padding: 12px 16px; }
+  .lb-back-btn { padding: 6px 12px; font-size: 0.82rem; }
+
+  /* Hero */
+  .lb-hero { padding: 36px 16px 24px; }
+  .lb-hero h1 { font-size: 1.7rem; }
+  .lb-hero p { font-size: 0.9rem; }
+
+  /* Podium: 3 cards side by side, full-width on small screens */
+  .lb-podium { padding: 0 12px 36px; gap: 10px; flex-wrap: nowrap; }
+  .lb-podium-card { min-width: 100px; max-width: none; flex: 1; padding: 16px 8px; gap: 5px; }
+  .lb-podium-name { font-size: 0.78rem; max-width: 100%; }
+  .lb-podium-count strong { font-size: 1.2rem; }
+  .lb-podium-count span { font-size: 0.65rem; }
+  .lb-podium-rank { font-size: 1.7rem; }
+  .lb-badge-row { font-size: 1rem; }
+
+  /* Ranked list rows: more compact */
+  .lb-section { padding: 0 12px 24px; }
+  .lb-row { padding: 10px 14px; gap: 10px; }
+  .lb-row-rank { min-width: 28px; font-size: 0.8rem; }
+  .lb-row-name { font-size: 0.88rem; }
+  .lb-row-loc  { font-size: 0.72rem; }
+  .lb-row-count { font-size: 0.82rem; }
+  .lb-row-badges { font-size: 0.88rem; }
+  .lb-blood-sm { padding: 1px 7px; font-size: 0.7rem; }
+}
 @media (max-width: 520px) {
-  .lb-podium { gap: 10px; }
-  .lb-podium-card { min-width: 110px; max-width: 140px; padding: 16px 10px; gap: 6px; }
-  .lb-podium-name { font-size: 0.82rem; }
-  .lb-podium-count strong { font-size: 1.3rem; }
-  .lb-podium-rank { font-size: 1.8rem; }
-  .lb-hero h1 { font-size: 1.6rem; }
+  .lb-podium { gap: 8px; }
+  .lb-podium-card { min-width: 90px; max-width: 140px; padding: 14px 8px; gap: 5px; }
+  .lb-podium-name { font-size: 0.75rem; }
+  .lb-podium-count strong { font-size: 1.2rem; }
+  .lb-podium-rank { font-size: 1.6rem; }
+  .lb-hero h1 { font-size: 1.5rem; }
+  .lb-you-tag { font-size: 0.58rem; padding: 2px 6px; }
 }

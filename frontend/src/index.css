@@ -32,4 +32,9 @@ body {
   background: var(--bg);
   color: var(--text);
   transition: background 0.25s ease, color 0.25s ease;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
 }

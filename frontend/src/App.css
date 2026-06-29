@@ -214,3 +214,35 @@ button.ghost { background: transparent; color: var(--muted); border: 1px solid v
 .profile-table th { color: var(--muted); font-weight: 500; width: 42%; }
 .profile-table td { color: var(--text); }
 .profile-table .muted { color: var(--muted); }
+
+/* ── Responsive ───────────────────────────────────────── */
+@media (max-width: 640px) {
+  .app { padding: 16px 12px 56px; gap: 12px; }
+
+  /* Registration grid: stacked on mobile */
+  .row { flex-direction: column; }
+  .row > input, .row > select { min-width: 0; }
+  .row .col { min-width: 0; }
+
+  /* Auth card padding */
+  .card { padding: 16px 14px; }
+
+  /* Buttons: ensure 44px touch target */
+  button { min-height: 44px; }
+
+  /* Toggle buttons: ensure full width on mobile */
+  .toggle { flex-direction: column; gap: 6px; }
+  .toggle button { width: 100%; }
+
+  /* Credential card */
+  .cred { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .cred-label { width: auto; }
+  .cred code { font-size: 0.95rem; }
+
+  /* Profile head: stack avatar + text */
+  .profile-head { flex-direction: column; align-items: flex-start; gap: 10px; }
+
+  /* Header */
+  .header h1 { font-size: 1.3rem; }
+  .userbar { font-size: 0.82rem; }
+}
