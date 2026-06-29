@@ -133,7 +133,7 @@ function PodiumCard({ donor, rank, isMe }) {
       {donor.blood_type && <div className="lb-blood-badge">{donor.blood_type}</div>}
       <div className="lb-podium-count">
         <strong>{donor.donation_count}</strong>
-        <span>donations</span>
+        <span>{donor.donation_count === 1 ? "donation" : "donations"}</span>
       </div>
       {donor.location_text && <div className="lb-podium-loc">📍 {donor.location_text}</div>}
       {badges.length > 0 && (
@@ -161,7 +161,7 @@ function RankRow({ donor, rank, isMe }) {
       </div>
       <div className="lb-row-right">
         {donor.blood_type && <span className="lb-blood-sm">{donor.blood_type}</span>}
-        <div className="lb-row-count">{donor.donation_count} <span>donations</span></div>
+        <div className="lb-row-count">{donor.donation_count} <span>{donor.donation_count === 1 ? "donation" : "donations"}</span></div>
         {badges.length > 0 && (
           <div className="lb-row-badges">
             {badges.map(b => <span key={b.id} title={b.name}>{b.emoji}</span>)}
