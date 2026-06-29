@@ -100,6 +100,19 @@ export const api = {
   me: () => request("/auth/me"),
   updateProfile: (payload) => request("/auth/profile", { method: "PUT", body: payload }),
   organPledge: (organs) => request("/auth/organ-pledge", { method: "POST", body: { organs } }),
+
+  // medical tests
+  bookTest: (payload) => request("/tests/book", { method: "POST", body: payload }),
+  myTestBookings: () => request("/tests/my-bookings"),
+  uploadTestReport: (bookingId, file) => {
+    const fd = new FormData();
+    fd.append("report", file);
+    const headers = {};
+    const token = auth.getToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return fetch(`/api/tests/bookings/${bookingId}/report`, { method: "POST", headers, body: fd })
+      .then(r => r.json().then(d => { if (!r.ok) throw new Error(d.error || "Upload failed"); return d; }));
+  },
   testEmail: () => request("/auth/test-email", { method: "POST" }),
 
   // uploads

@@ -1215,6 +1215,110 @@ export async function sendOrganPledgeEmail({ toEmail, toName, organs, pledgeDate
   });
 }
 
+// ── Medical test booking confirmation ────────────────────────────────────────
+
+export async function sendTestBookingEmail({ toEmail, toName, booking }) {
+  if (!emailConfigured()) return;
+  const dateStr = new Date(booking.scheduled_date).toLocaleDateString("en-BD", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric",
+  });
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f0f9ff;font-family:'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f9ff;padding:24px 0;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);">
+
+  <!-- Header -->
+  <tr><td style="background:linear-gradient(135deg,#0284c7,#0ea5e9);padding:32px 32px 28px;text-align:center;">
+    <div style="font-size:2.8rem;margin-bottom:10px;">🔬</div>
+    <div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:.03em;">Test Booking Confirmed</div>
+    <div style="font-size:13px;color:#bae6fd;margin-top:6px;">SaveLife Medical Diagnostics</div>
+  </td></tr>
+
+  <!-- Ref badge -->
+  <tr><td style="padding:0 32px;">
+    <div style="margin:-18px auto 0;background:#fff;border:2px solid #0ea5e9;border-radius:12px;padding:14px 20px;text-align:center;max-width:320px;box-shadow:0 2px 12px rgba(14,165,233,.15);">
+      <div style="font-size:11px;font-weight:700;color:#0284c7;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">Booking Reference</div>
+      <div style="font-size:22px;font-weight:900;color:#0c4a6e;font-family:monospace;">${booking.booking_ref}</div>
+    </div>
+  </td></tr>
+
+  <!-- Body -->
+  <tr><td style="padding:28px 32px 0;">
+    <div style="font-size:22px;font-weight:900;color:#0c4a6e;margin-bottom:20px;">${booking.test_name}</div>
+
+    <!-- Details table -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0f2fe;border-radius:12px;overflow:hidden;margin-bottom:22px;">
+      ${[
+        ["🏥 Test Centre", booking.center_name],
+        ["📍 Area", booking.center_area || "Dhaka"],
+        ["📅 Date", dateStr],
+        ["🕐 Time", booking.scheduled_time],
+        booking.center_phone ? ["📞 Phone", booking.center_phone] : null,
+        booking.patient_name ? ["👤 Patient", booking.patient_name] : null,
+        booking.patient_age ? ["🎂 Age", `${booking.patient_age} years`] : null,
+      ].filter(Boolean).map((row, i) => `
+        <tr style="background:${i % 2 === 0 ? "#f0f9ff" : "#fff"};">
+          <td style="padding:10px 14px;font-size:13px;color:#475569;font-weight:600;width:130px;">${row[0]}</td>
+          <td style="padding:10px 14px;font-size:13px;color:#0c4a6e;font-weight:700;">${row[1]}</td>
+        </tr>`).join("")}
+    </table>
+
+    ${booking.center_address ? `
+    <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#0c4a6e;">
+      <strong>📍 Address:</strong> ${booking.center_address}
+    </div>` : ""}
+
+    <!-- Preparation box -->
+    <div style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:12px;padding:16px 18px;margin-bottom:20px;">
+      <div style="font-size:13px;font-weight:800;color:#92400e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">⚠️ What to Do Before Your Test</div>
+      <ul style="margin:0;padding-left:18px;font-size:13px;color:#78350f;line-height:1.9;">
+        <li>Arrive <strong>15 minutes early</strong> at the centre</li>
+        <li>Bring your <strong>National ID (NID)</strong> or passport</li>
+        <li>Show this email or your booking reference <strong>${booking.booking_ref}</strong></li>
+        <li>Mention any ongoing medications to the technician</li>
+        ${booking.notes ? `<li>Your note: <em>${booking.notes}</em></li>` : ""}
+      </ul>
+    </div>
+
+    <!-- Report upload note -->
+    <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:14px 18px;margin-bottom:28px;">
+      <div style="font-size:13px;font-weight:800;color:#166534;margin-bottom:6px;">📥 Uploading Your Report</div>
+      <div style="font-size:13px;color:#14532d;line-height:1.7;">
+        Once you receive your test report, you can upload it directly to the SaveLife app under
+        <strong>Medical Tests → My Bookings</strong>. We'll store it securely and you can
+        download it anytime.
+      </div>
+    </div>
+  </td></tr>
+
+  <!-- Footer -->
+  <tr><td style="background:#f0f9ff;padding:20px 32px;text-align:center;border-top:1px solid #e0f2fe;">
+    <div style="font-size:12px;color:#64748b;line-height:1.8;">
+      SaveLife Foundation · Banani, Dhaka, Bangladesh<br>
+      Need help? Open the app or call <strong>+880 2-55048123</strong><br>
+      <span style="color:#94a3b8;">This is an automated message — please do not reply directly.</span>
+    </div>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+
+  return transporter.sendMail({
+    from: `"SaveLife Medical" <${process.env.EMAIL_USER}>`,
+    to: toEmail,
+    subject: `Test Booking Confirmed — ${booking.test_name} · Ref ${booking.booking_ref}`,
+    html,
+  });
+}
+
 // Send a test email to verify the setup is working.
 export async function sendTestEmail(toEmail, toName) {
   if (!emailConfigured()) {

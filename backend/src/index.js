@@ -14,6 +14,7 @@ import hospitalRoutes from "./routes/hospitals.js";
 import doctorRoutes from "./routes/doctors.js";
 import medicineRoutes from "./routes/medicines.js";
 import uploadRoutes from "./routes/uploads.js";
+import testRoutes from "./routes/tests.js";
 import { initDb } from "./db/initDb.js";
 
 dotenv.config();
@@ -45,6 +46,7 @@ app.use("/api/alerts", alertRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/medicines", medicineRoutes);
+app.use("/api/tests", testRoutes);
 
 // Unknown API routes -> JSON 404
 app.use("/api", (req, res) => {

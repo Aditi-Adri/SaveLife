@@ -55,6 +55,31 @@ CREATE TABLE IF NOT EXISTS emergency_contacts (
 CREATE INDEX IF NOT EXISTS idx_contacts_user_id ON emergency_contacts(user_id);
 ALTER TABLE emergency_contacts ADD COLUMN IF NOT EXISTS email VARCHAR(200);
 
+-- Medical test bookings
+CREATE TABLE IF NOT EXISTS test_bookings (
+  id             SERIAL PRIMARY KEY,
+  user_id        INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  booking_ref    VARCHAR(20) UNIQUE NOT NULL,
+  test_id        INTEGER NOT NULL,
+  test_name      VARCHAR(180) NOT NULL,
+  center_id      INTEGER NOT NULL,
+  center_name    VARCHAR(180) NOT NULL,
+  center_area    VARCHAR(80),
+  center_address TEXT,
+  center_phone   VARCHAR(30),
+  scheduled_date DATE NOT NULL,
+  scheduled_time VARCHAR(20) NOT NULL,
+  patient_name   VARCHAR(120),
+  patient_age    INTEGER,
+  patient_phone  VARCHAR(20),
+  notes          TEXT,
+  status         VARCHAR(20) DEFAULT 'confirmed',
+  report_url     TEXT,
+  report_name    VARCHAR(255),
+  created_at     TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_test_bookings_user ON test_bookings(user_id);
+
 -- An SOS alert raised by a user. Responders pick these up.
 CREATE TABLE IF NOT EXISTS alerts (
   id            SERIAL PRIMARY KEY,

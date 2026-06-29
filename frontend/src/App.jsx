@@ -12,6 +12,7 @@ import SOSWidget from "./SOS";
 import Leaderboard from "./Leaderboard";
 import BloodGuide from "./BloodGuide";
 import HealthTips from "./HealthTips";
+import MedicalTests from "./MedicalTests";
 import "./App.css";
 
 const INTENT_MESSAGE = {
@@ -116,6 +117,8 @@ export default function App() {
       mainView = <BloodGuide user={user} onBack={() => setView("explore")} onUserUpdate={(u) => setUser(u)} onAuth={goAuth} initialTab={bgTab} />;
     else if (view === "healthtips")
       mainView = <HealthTips user={user} onBack={() => setView("explore")} />;
+    else if (view === "tests")
+      mainView = <MedicalTests user={user} onBack={() => setView("explore")} onAuth={goAuth} />;
     else
       mainView = (
         <Explore
@@ -131,6 +134,7 @@ export default function App() {
           onLeaderboard={() => setView("leaderboard")}
           onBloodGuide={() => { setBgTab("blood"); setView("bloodguide"); }}
           onHealthTips={() => setView("healthtips")}
+          onTests={() => setView("tests")}
         />
       );
     return (
@@ -149,6 +153,8 @@ export default function App() {
     return <BloodGuide user={null} onBack={() => setView("explore")} onAuth={goAuth} initialTab={bgTab} />;
   if (view === "healthtips")
     return <HealthTips user={null} onBack={() => setView("explore")} />;
+  if (view === "tests")
+    return <MedicalTests user={null} onBack={() => setView("explore")} onAuth={goAuth} />;
   if (view === "explore")
     return (
       <Explore
@@ -162,6 +168,7 @@ export default function App() {
         onLeaderboard={() => setView("leaderboard")}
         onBloodGuide={() => { setBgTab("blood"); setView("bloodguide"); }}
         onHealthTips={() => setView("healthtips")}
+        onTests={() => setView("tests")}
       />
     );
   if (view === "organ")

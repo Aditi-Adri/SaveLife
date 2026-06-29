@@ -36,7 +36,7 @@ function timeAgo(iso) {
 }
 function dateStr(d) { return d ? new Date(d).toLocaleDateString() : null; }
 
-export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLogout, onHospitals, onAmbulance, onDoctors, onMedicines, onLeaderboard, onBloodGuide, onHealthTips }) {
+export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLogout, onHospitals, onAmbulance, onDoctors, onMedicines, onLeaderboard, onBloodGuide, onHealthTips, onTests }) {
   const [filters, setFilters]       = useState(EMPTY_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
   const [stats, setStats]           = useState(null);
@@ -149,6 +149,7 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
           <a className="ex-navlink" onClick={onLeaderboard} role="button">🏆 Leaderboard</a>
           <a className="ex-navlink" onClick={onBloodGuide} role="button">🩸 Blood Guide</a>
           <a className="ex-navlink" onClick={onHealthTips} role="button">💡 Health Tips</a>
+          <a className="ex-navlink" onClick={onTests} role="button">🔬 Medical Tests</a>
           <ThemeToggle />
           {user ? (
             <>
@@ -379,6 +380,17 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── MEDICAL TESTS TEASER ── */}
+      <section className="ex-section">
+        <div className="og-teaser" style={{ background: "linear-gradient(135deg, rgba(14,165,233,.07), rgba(2,132,199,.04))", border: "1.5px solid rgba(14,165,233,.25)", borderRadius: "14px", padding: "18px 20px" }}>
+          <div>
+            <h2>🔬 Book Medical Tests Online</h2>
+            <p>CBC, ECG, MRI, Ultrasound &amp; more — sorted by nearest lab. Get a confirmation email and upload your report.</p>
+          </div>
+          <button className="btn btn-outline" style={{ borderColor: "#0ea5e9", color: "#0ea5e9" }} onClick={onTests}>Book a test →</button>
         </div>
       </section>
 
