@@ -784,6 +784,133 @@ export async function sendDoctorAppointmentEmail({ toEmail, toName, appointment,
   });
 }
 
+// SOS alert notification sent to the user who raised the alert.
+export async function sendSOSNotificationEmail({ toEmail, toName, location, mapsUrl, contacts }) {
+  const time = new Date().toLocaleString("en-BD", { timeZone: "Asia/Dhaka", hour12: true });
+  const contactRows = (contacts || []).map(c =>
+    `<tr>
+      <td style="padding:7px 12px;border-bottom:1px solid #fca5a5;color:#1f2937;font-size:14px;font-weight:bold;">${c.name}${c.relationship ? ` (${c.relationship})` : ""}</td>
+      <td style="padding:7px 12px;border-bottom:1px solid #fca5a5;"><a href="tel:${c.phone}" style="color:#dc2626;font-weight:bold;">${c.phone}</a></td>
+    </tr>`
+  ).join("");
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#fff5f5;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#fff5f5;padding:32px 0;">
+  <tr><td align="center">
+    <table width="520" cellpadding="0" cellspacing="0"
+           style="background:#ffffff;border-radius:10px;overflow:hidden;border:2px solid #dc2626;max-width:520px;">
+      <tr>
+        <td style="background:#dc2626;padding:22px 32px;text-align:center;">
+          <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;letter-spacing:1px;">🚨 EMERGENCY SOS</h1>
+          <p style="margin:6px 0 0;color:#fecaca;font-size:13px;">SaveLife Emergency Alert System</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#fef2f2;padding:16px 32px;border-bottom:1px solid #fecaca;text-align:center;">
+          <h2 style="margin:0;color:#991b1b;font-size:16px;">Your SOS Alert Has Been Logged</h2>
+          <p style="margin:6px 0 0;color:#b91c1c;font-size:13px;">${time}</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:24px 32px;">
+          <p style="margin:0 0 20px;color:#374151;font-size:15px;line-height:1.65;">
+            Hi <strong>${toName}</strong>, your emergency SOS alert was successfully logged on SaveLife.
+            This is a confirmation email — keep it for reference.
+          </p>
+
+          <!-- Location -->
+          <table width="100%" cellpadding="0" cellspacing="0"
+                 style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;margin-bottom:16px;">
+            <tr>
+              <td style="padding:16px 20px;">
+                <p style="margin:0 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">📍 Your Location</p>
+                ${location?.latitude
+                  ? `<p style="margin:0 0 8px;color:#1f2937;font-size:15px;font-weight:bold;font-family:monospace;">
+                      ${Number(location.latitude).toFixed(5)}°N, ${Number(location.longitude).toFixed(5)}°E
+                    </p>
+                    ${mapsUrl ? `<a href="${mapsUrl}" style="color:#1d4ed8;font-size:14px;font-weight:bold;">📍 View on Google Maps ↗</a>` : ""}`
+                  : `<p style="margin:0;color:#6b7280;font-size:14px;">Location was unavailable</p>`}
+              </td>
+            </tr>
+          </table>
+
+          <!-- Emergency numbers -->
+          <table width="100%" cellpadding="0" cellspacing="0"
+                 style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:16px;">
+            <tr>
+              <td style="padding:16px 20px;">
+                <p style="margin:0 0 10px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">📞 Bangladesh Emergency Numbers</p>
+                <table width="100%"><tbody>
+                  <tr>
+                    <td style="padding:3px 0;color:#1f2937;font-size:14px;">🚔 Police</td>
+                    <td style="font-weight:bold;color:#dc2626;font-size:16px;font-family:monospace;">999</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:3px 0;color:#1f2937;font-size:14px;">🚑 Ambulance (DGHS)</td>
+                    <td style="font-weight:bold;color:#dc2626;font-size:16px;font-family:monospace;">16430</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:3px 0;color:#1f2937;font-size:14px;">🚒 Fire Service</td>
+                    <td style="font-weight:bold;color:#dc2626;font-size:16px;font-family:monospace;">199</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:3px 0;color:#1f2937;font-size:14px;">🏥 DGHS Hotline</td>
+                    <td style="font-weight:bold;color:#dc2626;font-size:16px;font-family:monospace;">16257</td>
+                  </tr>
+                </tbody></table>
+              </td>
+            </tr>
+          </table>
+
+          ${contactRows ? `
+          <!-- Emergency contacts -->
+          <table width="100%" cellpadding="0" cellspacing="0"
+                 style="border:1px solid #fecaca;border-radius:8px;overflow:hidden;margin-bottom:16px;">
+            <thead><tr style="background:#fef2f2;">
+              <th style="padding:8px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;">Your Emergency Contacts</th>
+              <th style="padding:8px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;">Phone</th>
+            </tr></thead>
+            <tbody>${contactRows}</tbody>
+          </table>` : ""}
+
+          <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.6;text-align:center;">
+            If this was a false alarm, you can cancel the alert from the SaveLife app.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#f9fafb;padding:14px 32px;border-top:1px solid #e5e7eb;text-align:center;">
+          <p style="margin:0;color:#9ca3af;font-size:12px;">SaveLife Emergency Network · Bangladesh</p>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text =
+    `🚨 SOS ALERT LOGGED — SaveLife\n\n` +
+    `Hi ${toName}, your emergency SOS was logged at ${time}.\n\n` +
+    (location?.latitude
+      ? `Location: ${Number(location.latitude).toFixed(5)}°N, ${Number(location.longitude).toFixed(5)}°E\n${mapsUrl || ""}\n\n`
+      : "Location unavailable\n\n") +
+    `Bangladesh Emergency Numbers:\n  999 — Police\n  16430 — Ambulance\n  199 — Fire\n  16257 — DGHS\n\n` +
+    ((contacts || []).length > 0
+      ? `Your Contacts:\n${contacts.map(c => `  • ${c.name} — ${c.phone}`).join("\n")}\n\n`
+      : "") +
+    `Stay safe. — SaveLife`;
+
+  await send({
+    to: `"${toName}" <${toEmail}>`,
+    subject: `🚨 SOS Alert Logged — SaveLife Emergency`,
+    html,
+    text,
+  });
+}
+
 // Send a test email to verify the setup is working.
 export async function sendTestEmail(toEmail, toName) {
   if (!emailConfigured()) {

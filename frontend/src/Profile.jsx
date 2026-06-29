@@ -124,6 +124,42 @@ export default function Profile({ user, emailNotifications, onBack, onLogout, on
   const [notifMsg, setNotifMsg] = useState("");
   const [notifOk, setNotifOk] = useState(false);
 
+  // Emergency contacts
+  const [contacts, setContacts]         = useState([]);
+  const [contactForm, setContactForm]   = useState({ name: "", phone: "", relationship: "" });
+  const [contactBusy, setContactBusy]   = useState(false);
+  const [contactErr, setContactErr]     = useState("");
+
+  useEffect(() => {
+    api.listContacts().then(d => setContacts(d.contacts || [])).catch(() => {});
+  }, []);
+
+  async function addContact(e) {
+    e.preventDefault();
+    if (!contactForm.name || !contactForm.phone) {
+      setContactErr("Name and phone are required");
+      return;
+    }
+    setContactBusy(true);
+    setContactErr("");
+    try {
+      const { contact } = await api.addContact(contactForm);
+      setContacts(prev => [...prev, contact]);
+      setContactForm({ name: "", phone: "", relationship: "" });
+    } catch (err) {
+      setContactErr(err.message);
+    } finally {
+      setContactBusy(false);
+    }
+  }
+
+  async function removeContact(id) {
+    try {
+      await api.deleteContact(id);
+      setContacts(prev => prev.filter(c => c.id !== id));
+    } catch {}
+  }
+
   async function sendTestNotif() {
     setNotifBusy(true);
     setNotifMsg("");
@@ -216,6 +252,10 @@ export default function Profile({ user, emailNotifications, onBack, onLogout, on
         </button>
         <button className={`pf-tab${tab === "notif" ? " pf-tab-on" : ""}`} onClick={() => setTab("notif")}>
           🔔 Notifications
+        </button>
+        <button className={`pf-tab${tab === "emergency" ? " pf-tab-on" : ""}`} onClick={() => setTab("emergency")}>
+          🚨 Emergency
+          {contacts.length > 0 && <span className="pf-tab-badge">{contacts.length}</span>}
         </button>
       </div>
 
@@ -596,6 +636,82 @@ export default function Profile({ user, emailNotifications, onBack, onLogout, on
           </div>
         </section>
       )}
+      {/* ── Emergency Contacts tab ── */}
+      {tab === "emergency" && (
+        <section className="pf-section">
+          <div className="pf-section-head">
+            <h2>🚨 Emergency Contacts</h2>
+          </div>
+          <p className="pf-hint">
+            These contacts appear on your SOS screen and are included in your SOS alert email.
+            Add up to 5 people (family, friends, doctor) we should show when you trigger an emergency.
+          </p>
+
+          {/* Add contact form */}
+          {contacts.length < 5 && (
+            <form className="ec-form" onSubmit={addContact}>
+              <div className="ec-form-row">
+                <input
+                  className="ec-input"
+                  placeholder="Full name *"
+                  value={contactForm.name}
+                  onChange={e => setContactForm(f => ({ ...f, name: e.target.value }))}
+                  required
+                />
+                <input
+                  className="ec-input"
+                  placeholder="Phone number *"
+                  value={contactForm.phone}
+                  onChange={e => setContactForm(f => ({ ...f, phone: e.target.value }))}
+                  inputMode="tel"
+                  required
+                />
+                <input
+                  className="ec-input"
+                  placeholder="Relationship (e.g. Father, Doctor)"
+                  value={contactForm.relationship}
+                  onChange={e => setContactForm(f => ({ ...f, relationship: e.target.value }))}
+                />
+                <button className="pf-btn pf-primary" type="submit" disabled={contactBusy}>
+                  {contactBusy ? "…" : "＋ Add"}
+                </button>
+              </div>
+              {contactErr && <p className="pf-msg pf-error">{contactErr}</p>}
+            </form>
+          )}
+
+          {/* Contact list */}
+          <div className="ec-list">
+            {contacts.length === 0 ? (
+              <p className="pf-hint" style={{ textAlign: "center", padding: "24px 0" }}>
+                No emergency contacts yet. Add someone above.
+              </p>
+            ) : (
+              contacts.map(c => (
+                <div key={c.id} className="ec-row">
+                  <div className="ec-avatar">{c.name[0].toUpperCase()}</div>
+                  <div className="ec-info">
+                    <strong>{c.name}</strong>
+                    {c.relationship && <span className="ec-rel">{c.relationship}</span>}
+                    <a href={`tel:${c.phone}`} className="ec-phone">{c.phone}</a>
+                  </div>
+                  <button className="ec-del" onClick={() => removeContact(c.id)} title="Remove">✕</button>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="ec-tip">
+            <span>🚨</span>
+            <span>
+              When you press the <strong>SOS button</strong> (bottom-left of any page),
+              these contacts' phone numbers appear on screen for quick calling.
+              Your SOS alert email is sent to <strong>{user.email}</strong>.
+            </span>
+          </div>
+        </section>
+      )}
+
     </div>
   );
 }

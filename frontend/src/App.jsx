@@ -8,6 +8,7 @@ import Ambulance from "./Ambulance";
 import Profile from "./Profile";
 import Doctors from "./Doctors";
 import Medicines from "./Medicines";
+import SOSWidget from "./SOS";
 import "./App.css";
 
 const INTENT_MESSAGE = {
@@ -60,18 +61,19 @@ export default function App() {
 
   // ---- Logged-in: Explore is home; Profile and Organ are reachable from it ----
   if (user) {
+    let mainView;
     if (view === "organ")
-      return <OrganInfo onBack={() => setView("explore")} onAuth={() => setView("profile")} />;
-    if (view === "hospitals")
-      return <Hospitals user={user} onBack={() => setView("explore")} onAuth={goAuth} />;
-    if (view === "ambulance")
-      return <Ambulance onBack={() => setView("explore")} />;
-    if (view === "doctors")
-      return <Doctors user={user} onBack={() => setView("explore")} onAuth={goAuth} />;
-    if (view === "medicines")
-      return <Medicines user={user} onBack={() => setView("explore")} onAuth={goAuth} />;
-    if (view === "profile")
-      return (
+      mainView = <OrganInfo onBack={() => setView("explore")} onAuth={() => setView("profile")} />;
+    else if (view === "hospitals")
+      mainView = <Hospitals user={user} onBack={() => setView("explore")} onAuth={goAuth} />;
+    else if (view === "ambulance")
+      mainView = <Ambulance onBack={() => setView("explore")} />;
+    else if (view === "doctors")
+      mainView = <Doctors user={user} onBack={() => setView("explore")} onAuth={goAuth} />;
+    else if (view === "medicines")
+      mainView = <Medicines user={user} onBack={() => setView("explore")} onAuth={goAuth} />;
+    else if (view === "profile")
+      mainView = (
         <Profile
           user={user}
           emailNotifications={emailNotifications}
@@ -80,18 +82,25 @@ export default function App() {
           onUserUpdate={(u) => setUser(u)}
         />
       );
+    else
+      mainView = (
+        <Explore
+          user={user}
+          onHome={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          onOrgan={() => setView("organ")}
+          onProfile={() => setView("profile")}
+          onLogout={logout}
+          onHospitals={() => setView("hospitals")}
+          onAmbulance={() => setView("ambulance")}
+          onDoctors={() => setView("doctors")}
+          onMedicines={() => setView("medicines")}
+        />
+      );
     return (
-      <Explore
-        user={user}
-        onHome={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        onOrgan={() => setView("organ")}
-        onProfile={() => setView("profile")}
-        onLogout={logout}
-        onHospitals={() => setView("hospitals")}
-        onAmbulance={() => setView("ambulance")}
-        onDoctors={() => setView("doctors")}
-        onMedicines={() => setView("medicines")}
-      />
+      <>
+        {mainView}
+        <SOSWidget user={user} />
+      </>
     );
   }
 
