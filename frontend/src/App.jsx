@@ -10,6 +10,7 @@ import Doctors from "./Doctors";
 import Medicines from "./Medicines";
 import SOSWidget from "./SOS";
 import Leaderboard from "./Leaderboard";
+import BloodGuide from "./BloodGuide";
 import "./App.css";
 
 const INTENT_MESSAGE = {
@@ -85,6 +86,8 @@ export default function App() {
       );
     else if (view === "leaderboard")
       mainView = <Leaderboard user={user} onBack={() => setView("explore")} />;
+    else if (view === "bloodguide")
+      mainView = <BloodGuide user={user} onBack={() => setView("explore")} />;
     else
       mainView = (
         <Explore
@@ -98,6 +101,7 @@ export default function App() {
           onDoctors={() => setView("doctors")}
           onMedicines={() => setView("medicines")}
           onLeaderboard={() => setView("leaderboard")}
+          onBloodGuide={() => setView("bloodguide")}
         />
       );
     return (
@@ -112,6 +116,8 @@ export default function App() {
   if (view === "home") return <Home onGetStarted={() => setView("explore")} />;
   if (view === "leaderboard")
     return <Leaderboard user={null} onBack={() => setView("explore")} />;
+  if (view === "bloodguide")
+    return <BloodGuide user={null} onBack={() => setView("explore")} />;
   if (view === "explore")
     return (
       <Explore
@@ -123,6 +129,7 @@ export default function App() {
         onDoctors={() => setView("doctors")}
         onMedicines={() => setView("medicines")}
         onLeaderboard={() => setView("leaderboard")}
+        onBloodGuide={() => setView("bloodguide")}
       />
     );
   if (view === "organ")
