@@ -28,6 +28,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [view, _setView] = useState(() => window.location.hash.slice(1) || "home");
   const [authIntent, setAuthIntent] = useState(null);
+  const [returnView, setReturnView] = useState(null);
   const [bgTab, setBgTab] = useState("blood");
 
   // Wrap setView so every navigation pushes a browser history entry.
@@ -71,13 +72,17 @@ export default function App() {
 
   function goAuth(intent) {
     setAuthIntent(intent || null);
+    // Remember where the user came from so we can send them back after login.
+    const from = view === "auth" ? null : view;
+    setReturnView(from && from !== "home" ? from : "explore");
     setView("auth");
   }
 
   function onAuthed(u) {
     setUser(u);
     setAuthIntent(null);
-    setView("explore");
+    setView(returnView || "explore");
+    setReturnView(null);
   }
 
   if (loading) return <div className="center">Loading…</div>;
