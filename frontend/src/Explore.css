@@ -102,6 +102,9 @@
 .ex-stat span { color: var(--muted); font-size: 0.88rem; }
 .ex-stat.accent { border-color: var(--accent); }
 .ex-stat.accent strong { color: var(--accent); }
+.ex-stat.clickable { cursor: pointer; transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s; }
+.ex-stat.clickable:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 4px 16px rgba(220,38,38,0.15); }
+.ex-stat.clickable:active { transform: translateY(0); }
 
 /* Sections */
 .ex-section { max-width: 1040px; margin: 0 auto; padding: 40px 24px; }
@@ -563,3 +566,19 @@
   .donor-card { flex-direction: column; }
   .dc-avatar img, .dc-avatar-ph { width: 42px; height: 42px; font-size: 1rem; }
 }
+
+/* Donor auth wall */
+.donor-auth-wall {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 14px; padding: 60px 24px; text-align: center;
+  max-width: 400px; margin: 0 auto;
+}
+.daw-icon { font-size: 3rem; }
+.donor-auth-wall h3 { margin: 0; font-size: 1.3rem; }
+.donor-auth-wall p { color: var(--muted); margin: 0; line-height: 1.6; font-size: 0.95rem; }
+.daw-btn {
+  background: var(--accent); color: #fff; border: none; border-radius: 10px;
+  padding: 12px 28px; font-size: 0.95rem; font-weight: 700;
+  cursor: pointer; transition: background 0.15s;
+}
+.daw-btn:hover { background: var(--accent-dark); }

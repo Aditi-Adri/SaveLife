@@ -11,6 +11,7 @@ import alertRoutes from "./routes/alerts.js";
 import publicRoutes from "./routes/public.js";
 import requestRoutes from "./routes/requests.js";
 import hospitalRoutes from "./routes/hospitals.js";
+import doctorRoutes from "./routes/doctors.js";
 import uploadRoutes from "./routes/uploads.js";
 import { initDb } from "./db/initDb.js";
 
@@ -41,6 +42,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/alerts", alertRoutes);
 app.use("/api/uploads", uploadRoutes);
+app.use("/api/doctors", doctorRoutes);
 
 // Unknown API routes -> JSON 404
 app.use("/api", (req, res) => {

@@ -79,6 +79,16 @@ export const api = {
       .then(r => r.json());
   },
 
+  // doctors & appointments
+  publicDoctors: (filters = {}) => {
+    const q = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => { if (v) q.set(k, v); });
+    const qs = q.toString();
+    return request(`/doctors${qs ? "?" + qs : ""}`);
+  },
+  bookAppointment: (payload) => request("/doctors/appointments", { method: "POST", body: payload }),
+  myAppointments: () => request("/doctors/appointments/mine"),
+
   // auth
   register: (payload) => request("/auth/register", { method: "POST", body: payload }),
   login: (payload) => request("/auth/login", { method: "POST", body: payload }),

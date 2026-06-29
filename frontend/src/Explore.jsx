@@ -33,7 +33,7 @@ function timeAgo(iso) {
 }
 function dateStr(d) { return d ? new Date(d).toLocaleDateString() : null; }
 
-export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLogout, onHospitals, onAmbulance }) {
+export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLogout, onHospitals, onAmbulance, onDoctors }) {
   const [tab, setTab]               = useState("requests");
   const [filters, setFilters]       = useState(EMPTY_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
@@ -69,6 +69,7 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
 
   // Reload data whenever tab or filters change
   useEffect(() => {
+    if (tab === "donors" && !user) { setLoading(false); return; }
     setLoading(true);
     setError("");
     const params = buildParams();
@@ -76,7 +77,7 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
       ? api.publicRequests(params).then(d => setRequests(d.requests))
       : api.publicDonors(params).then(d => setDonors(d.donors));
     call.catch(e => setError(e.message)).finally(() => setLoading(false));
-  }, [tab, filters]);
+  }, [tab, filters, user]);
 
   function findNearest() {
     if (!navigator.geolocation) { setLocError("Geolocation not supported."); return; }
@@ -143,6 +144,7 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
         <a className="brand" onClick={onHome} role="button">🩺 <span>SaveLife</span></a>
         <div className="ex-nav-actions">
           <a className="ex-navlink" onClick={onHospitals} role="button">🏥 Hospitals</a>
+          <a className="ex-navlink" onClick={onDoctors} role="button">👨‍⚕️ Doctors</a>
           <a className="ex-navlink amb-link" onClick={onAmbulance} role="button">🚑 Ambulance</a>
           <a className="ex-navlink" onClick={onOrgan} role="button">Organ Donation</a>
           {user ? (
@@ -169,10 +171,12 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
 
       {/* ── STATS ── */}
       <section className="ex-stats">
-        <Stat value={stats?.donors}          label="Registered donors" />
-        <Stat value={stats?.openRequests}    label="Open requests" />
-        <Stat value={stats?.criticalRequests} label="Critical now" accent />
-        <Stat value={stats?.unitsNeeded}     label="Units needed" />
+        <Stat value={stats?.openRequests}     label="Open requests"
+          onClick={() => { setTab("requests"); resetFilters(); }} />
+        <Stat value={stats?.criticalRequests} label="Critical now" accent
+          onClick={() => { setTab("requests"); setFilters({ ...EMPTY_FILTERS, urgency: "critical" }); }} />
+        <Stat value={stats?.unitsNeeded}      label="Units needed"
+          onClick={() => { setTab("requests"); resetFilters(); }} />
       </section>
 
       {/* ── MY REQUESTS ── */}
@@ -359,7 +363,14 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
             </>
           ) : (
             <>
-              {loading ? <p className="ex-muted">Loading donors…</p>
+              {!user ? (
+                <div className="donor-auth-wall">
+                  <div className="daw-icon">🔒</div>
+                  <h3>Login to find donors</h3>
+                  <p>Donor profiles contain personal information and are only visible to registered members of SaveLife.</p>
+                  <button className="daw-btn" onClick={onAuth}>Sign in / Register</button>
+                </div>
+              ) : loading ? <p className="ex-muted">Loading donors…</p>
                 : orderedDonors.length === 0 ? <p className="ex-muted">No donors match your filters.</p>
                 : (
                   <div className="donor-grid">
@@ -607,9 +618,11 @@ function ProfileModal({ type, item, profile, profileLoading, revealed, onClose, 
 }
 
 /* ── STAT CHIP ── */
-function Stat({ value, label, accent }) {
+function Stat({ value, label, accent, onClick }) {
   return (
-    <div className={`ex-stat ${accent ? "accent" : ""}`}>
+    <div className={`ex-stat ${accent ? "accent" : ""} ${onClick ? "clickable" : ""}`}
+      onClick={onClick} role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") onClick(); } : undefined}>
       <strong>{value ?? "—"}</strong>
       <span>{label}</span>
     </div>

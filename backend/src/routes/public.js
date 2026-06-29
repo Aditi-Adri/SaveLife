@@ -6,14 +6,12 @@ const router = Router();
 // GET /api/public/stats
 router.get("/stats", async (req, res) => {
   try {
-    const [donors, openReqs, critical, units] = await Promise.all([
-      query("SELECT COUNT(*)::int AS n FROM users"),
+    const [openReqs, critical, units] = await Promise.all([
       query("SELECT COUNT(*)::int AS n FROM blood_requests WHERE status = 'open'"),
       query("SELECT COUNT(*)::int AS n FROM blood_requests WHERE status = 'open' AND urgency = 'critical'"),
       query("SELECT COALESCE(SUM(units_needed),0)::int AS n FROM blood_requests WHERE status = 'open'"),
     ]);
     res.json({
-      donors: donors.rows[0].n,
       openRequests: openReqs.rows[0].n,
       criticalRequests: critical.rows[0].n,
       unitsNeeded: units.rows[0].n,

@@ -228,6 +228,146 @@ export function generatePrivateSlip(booking, hospital, payInfo) {
   doc.save("SaveLife-Receipt-" + padId(booking.id) + ".pdf");
 }
 
+export function generateAppointmentSlip(appointment, doctor) {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+
+  // Teal header bar
+  setColor(doc, 13, 148, 136, "fill");
+  doc.rect(0, 0, 210, 22, "F");
+  doc.setFontSize(17);
+  doc.setFont("helvetica", "bold");
+  setColor(doc, 255, 255, 255);
+  doc.text("SaveLife", 15, 15);
+  doc.setFontSize(14);
+  setColor(doc, 153, 220, 214);
+  doc.text("|", 62, 15);
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "normal");
+  setColor(doc, 255, 255, 255);
+  doc.text("Appointment Confirmation", 68, 15);
+  doc.setFontSize(8);
+  setColor(doc, 200, 240, 235);
+  const apptRef = "APT-" + String(appointment.id).padStart(6, "0");
+  doc.text("Ref: " + apptRef, 145, 10);
+  doc.text("Generated: " + fmtDateTime(new Date()), 145, 16);
+
+  // Blue type strip
+  setColor(doc, 37, 99, 235, "fill");
+  doc.rect(0, 22, 210, 9, "F");
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "bold");
+  setColor(doc, 255, 255, 255);
+  doc.text("APPOINTMENT CONFIRMED  —  PLEASE ARRIVE 15 MINUTES BEFORE YOUR SCHEDULED TIME", 15, 28);
+
+  let y = 35;
+  y += 3;
+
+  // Confirmation banner
+  setColor(doc, 240, 253, 250, "fill");
+  doc.rect(12, y, 186, 16, "F");
+  setColor(doc, 13, 148, 136, "draw");
+  doc.setLineWidth(0.4);
+  doc.rect(12, y, 186, 16, "S");
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  setColor(doc, 13, 78, 71);
+  doc.text("Appointment Confirmed  —  " + apptRef, 16, y + 7);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.text("Present this slip to the reception desk on arrival. Keep for your records.", 16, y + 13);
+  y += 20;
+
+  // Doctor info
+  y = sectionBar(doc, "Doctor Information", y);
+  y = row(doc, "Doctor Name",      doctor?.name || "—", y);
+  y = row(doc, "Specialty",        doctor?.specialty || "—", y);
+  y = row(doc, "Qualifications",   doctor?.qualifications || "—", y);
+  y = row(doc, "Hospital / Clinic",doctor?.hospital || "—", y);
+  y = row(doc, "City",             doctor?.city || "—", y);
+  if (doctor?.phone) y = row(doc, "Contact",        doctor.phone, y);
+
+  y = divider(doc, y + 1);
+
+  // Patient info
+  y = sectionBar(doc, "Patient Information", y);
+  y = row(doc, "Patient Name",   appointment.patient_name || "—", y);
+  if (appointment.patient_age)  y = row(doc, "Age",   appointment.patient_age + " years", y);
+  if (appointment.patient_gender) y = row(doc, "Gender", appointment.patient_gender, y);
+  if (appointment.patient_phone)  y = row(doc, "Phone",  appointment.patient_phone, y);
+
+  y = divider(doc, y + 1);
+
+  // Appointment details
+  y = sectionBar(doc, "Appointment Details", y);
+
+  // Highlight box
+  setColor(doc, 239, 246, 255, "fill");
+  doc.rect(12, y, 186, 28, "F");
+  setColor(doc, 37, 99, 235, "draw");
+  doc.setLineWidth(0.4);
+  doc.rect(12, y, 186, 28, "S");
+  y += 4;
+
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  setColor(doc, 30, 64, 175);
+  doc.text("Date:", 16, y + 3);
+  setColor(doc, 30, 30, 46);
+  doc.text(fmtDate(appointment.appointment_date), 50, y + 3);
+
+  doc.text("Time:", 110, y + 3);
+  doc.text(appointment.appointment_time || "As scheduled", 130, y + 3);
+  y += 10;
+
+  doc.setFontSize(8.5);
+  doc.setFont("helvetica", "normal");
+  setColor(doc, 100, 116, 139);
+  doc.text("Consultation Fee:", 16, y + 3);
+  doc.setFont("helvetica", "bold");
+  setColor(doc, 30, 30, 46);
+  doc.text("BDT " + (doctor?.consultation_fee || 0).toLocaleString(), 70, y + 3);
+
+  doc.setFont("helvetica", "normal");
+  setColor(doc, 100, 116, 139);
+  doc.text("Status:", 110, y + 3);
+  doc.setFont("helvetica", "bold");
+  setColor(doc, 13, 148, 136);
+  doc.text((appointment.status || "confirmed").toUpperCase(), 130, y + 3);
+  y += 11;
+
+  y = row(doc, "Reason / Symptoms", appointment.reason || "General consultation", y);
+  if (appointment.notes) y = row(doc, "Notes",              appointment.notes, y);
+
+  y = divider(doc, y + 1);
+
+  // Instructions box
+  setColor(doc, 255, 251, 235, "fill");
+  doc.rect(12, y, 186, 22, "F");
+  doc.setFontSize(8.5);
+  doc.setFont("helvetica", "bold");
+  setColor(doc, 146, 64, 14);
+  doc.text("Important Instructions", 16, y + 7);
+  doc.setFont("helvetica", "normal");
+  setColor(doc, 120, 80, 20);
+  doc.text("1. Arrive 15 minutes before your appointment time.", 16, y + 13);
+  doc.text("2. Bring this confirmation slip and any previous medical reports.", 16, y + 18.5);
+  y += 26;
+
+  // Footer
+  y = Math.max(y + 6, 272);
+  setColor(doc, 220, 225, 235, "draw");
+  doc.setLineWidth(0.3);
+  doc.line(12, y, 198, y);
+  y += 5;
+  doc.setFontSize(7.5);
+  doc.setFont("helvetica", "normal");
+  setColor(doc, 150, 160, 175);
+  doc.text("This is a computer-generated confirmation and does not require a physical signature.", 15, y);
+  doc.text("SaveLife Health Platform  •  For queries contact the doctor's clinic directly.", 15, y + 5);
+
+  doc.save("SaveLife-Appointment-" + apptRef + ".pdf");
+}
+
 export function generatePublicSlip(booking, hospital) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   let y = topHeader(doc, "Booking Confirmation", booking.id, false);
