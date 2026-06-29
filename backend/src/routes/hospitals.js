@@ -5,6 +5,7 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import { query } from "../db/pool.js";
 import { requireAuth } from "../middleware/auth.js";
+import { sendHospitalBookingEmail } from "../utils/email.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const docsDir = path.join(__dirname, "../../uploads/booking-docs");
@@ -211,8 +212,25 @@ router.post("/:id/book", async (req, res) => {
       ]
     );
 
+    const booking = result.rows[0];
+
+    // Send confirmation email to the booker
+    query("SELECT name, email FROM users WHERE id = $1", [req.user.id])
+      .then(({ rows: uRows }) => {
+        const u = uRows[0];
+        if (u) {
+          sendHospitalBookingEmail({
+            toEmail: u.email,
+            toName: u.name,
+            booking,
+            hospitalName: hospital.name,
+          }).catch(() => {});
+        }
+      })
+      .catch(() => {});
+
     res.status(201).json({
-      booking: { ...result.rows[0], hospital_name: hospital.name },
+      booking: { ...booking, hospital_name: hospital.name },
     });
   } catch (err) {
     console.error(err);

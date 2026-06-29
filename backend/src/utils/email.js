@@ -355,6 +355,435 @@ export async function sendOrderConfirmationEmail({ toEmail, toName, order, items
   });
 }
 
+// Welcome email sent on account creation.
+export async function sendWelcomeEmail({ toEmail, toName, userCode, bloodType }) {
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#fff5f5;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#fff5f5;padding:32px 0;">
+  <tr><td align="center">
+    <table width="520" cellpadding="0" cellspacing="0"
+           style="background:#ffffff;border-radius:10px;overflow:hidden;border:1px solid #fecaca;max-width:520px;">
+      <tr>
+        <td style="background:#c0392b;padding:28px 32px;text-align:center;">
+          <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:bold;letter-spacing:0.5px;">❤️ SaveLife</h1>
+          <p style="margin:8px 0 0;color:#fca5a5;font-size:13px;">Bangladesh Blood Donation Network</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#fef2f2;padding:18px 32px;border-bottom:1px solid #fecaca;text-align:center;">
+          <p style="margin:0;font-size:22px;">🎉</p>
+          <h2 style="margin:6px 0 0;color:#991b1b;font-size:17px;font-weight:bold;">Welcome to SaveLife!</h2>
+          <p style="margin:4px 0 0;color:#b91c1c;font-size:13px;">Your account has been created successfully</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:28px 32px;">
+          <p style="margin:0 0 20px;color:#374151;font-size:15px;line-height:1.65;">
+            Hi <strong>${toName}</strong>, thank you for joining <strong>SaveLife</strong> — Bangladesh's
+            blood donation network. Your registration is complete and you can now donate, request blood,
+            and access all our services.
+          </p>
+          <table width="100%" cellpadding="0" cellspacing="0"
+                 style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;margin-bottom:20px;">
+            <tr>
+              <td style="padding:18px 20px;">
+                <p style="margin:0 0 12px;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:#9ca3af;font-weight:700;">Your Donor ID</p>
+                <p style="margin:0 0 4px;color:#1f2937;font-size:22px;font-weight:bold;font-family:monospace;letter-spacing:0.08em;">${userCode}</p>
+                <p style="margin:8px 0 0;color:#6b7280;font-size:13px;">Save this — you can use it to log in</p>
+                ${bloodType ? `<hr style="border:none;border-top:1px solid #fecaca;margin:12px 0;">
+                <p style="margin:0;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:#9ca3af;font-weight:700;">Blood Group</p>
+                <p style="margin:4px 0 0;color:#c0392b;font-size:20px;font-weight:bold;">${bloodType}</p>` : ""}
+              </td>
+            </tr>
+          </table>
+          <table width="100%" cellpadding="0" cellspacing="0"
+                 style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:20px;">
+            <tr>
+              <td style="padding:16px 20px;">
+                <p style="margin:0 0 10px;font-size:13px;color:#374151;font-weight:bold;">What you can do on SaveLife:</p>
+                <p style="margin:0 0 6px;color:#4b5563;font-size:14px;">🩸 Donate blood or plasma to people in need</p>
+                <p style="margin:0 0 6px;color:#4b5563;font-size:14px;">📢 Request blood for yourself or a patient</p>
+                <p style="margin:0 0 6px;color:#4b5563;font-size:14px;">🏥 Book hospital admissions & ambulance</p>
+                <p style="margin:0 0 6px;color:#4b5563;font-size:14px;">👨‍⚕️ Find & book doctors</p>
+                <p style="margin:0;color:#4b5563;font-size:14px;">💊 Order medicines & health products</p>
+              </td>
+            </tr>
+          </table>
+          <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.6;text-align:center;">
+            Every drop counts. Thank you for being a lifesaver.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#f9fafb;padding:14px 32px;border-top:1px solid #e5e7eb;text-align:center;">
+          <p style="margin:0;color:#9ca3af;font-size:12px;line-height:1.6;">
+            SaveLife Blood Donation Network · Bangladesh<br>
+            To unsubscribe, reply with "unsubscribe" in the subject.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text =
+    `Hi ${toName},\n\nWelcome to SaveLife — Bangladesh's blood donation network!\n\n` +
+    `Your Donor ID: ${userCode}\n` +
+    (bloodType ? `Blood Group: ${bloodType}\n` : "") +
+    `\nYou can now donate blood, request blood, book hospitals, find doctors, and order medicines.\n\n— SaveLife`;
+
+  await send({
+    to: `"${toName}" <${toEmail}>`,
+    subject: `Welcome to SaveLife, ${toName}! Your Donor ID: ${userCode}`,
+    html,
+    text,
+  });
+}
+
+// Confirmation email when a blood request is posted.
+export async function sendBloodRequestEmail({ toEmail, toName, request }) {
+  const label = {
+    blood: "Blood", plasma: "Plasma",
+    platelets: "Platelets", whole_blood: "Whole Blood",
+  }[request.donation_type] || "Blood";
+  const urgencyBadge = {
+    critical: "🔴 CRITICAL",
+    urgent:   "🟠 URGENT",
+    normal:   "🟢 Normal",
+  }[request.urgency] || request.urgency;
+  const reqId = `REQ-${String(request.id).padStart(6, "0")}`;
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#fff5f5;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#fff5f5;padding:32px 0;">
+  <tr><td align="center">
+    <table width="520" cellpadding="0" cellspacing="0"
+           style="background:#ffffff;border-radius:10px;overflow:hidden;border:1px solid #fecaca;max-width:520px;">
+      <tr>
+        <td style="background:#c0392b;padding:24px 32px;text-align:center;">
+          <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:bold;">SaveLife</h1>
+          <p style="margin:6px 0 0;color:#fca5a5;font-size:13px;">Blood Donation Network</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#fef2f2;padding:16px 32px;border-bottom:1px solid #fecaca;text-align:center;">
+          <p style="margin:0;font-size:20px;">📢</p>
+          <h2 style="margin:6px 0 0;color:#991b1b;font-size:17px;font-weight:bold;">Blood Request Posted</h2>
+          <p style="margin:4px 0 0;color:#b91c1c;font-size:12px;font-weight:bold;font-family:monospace;letter-spacing:0.06em;">${reqId}</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:28px 32px;">
+          <p style="margin:0 0 20px;color:#374151;font-size:15px;line-height:1.65;">
+            Hi <strong>${toName}</strong>, your blood request has been posted on SaveLife.
+            We will notify you as soon as a donor responds.
+          </p>
+          <table width="100%" cellpadding="0" cellspacing="0"
+                 style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;margin-bottom:16px;">
+            <tr>
+              <td style="padding:18px 20px;">
+                <p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">Patient</p>
+                <p style="margin:0 0 12px;color:#1f2937;font-size:17px;font-weight:bold;">${request.patient_name}</p>
+                <p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">Blood Type &amp; Donation</p>
+                <p style="margin:0 0 12px;color:#c0392b;font-size:18px;font-weight:bold;">${request.blood_type} — ${label}</p>
+                <p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">Units Needed</p>
+                <p style="margin:0 0 12px;color:#1f2937;font-size:15px;font-weight:bold;">${request.units_needed} unit${request.units_needed > 1 ? "s" : ""}</p>
+                <p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">Urgency</p>
+                <p style="margin:0 0 12px;color:#1f2937;font-size:15px;font-weight:bold;">${urgencyBadge}</p>
+                ${request.hospital ? `<p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">Hospital</p>
+                <p style="margin:0;color:#1f2937;font-size:14px;">${request.hospital}</p>` : ""}
+              </td>
+            </tr>
+          </table>
+          <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.6;text-align:center;">
+            You will receive another email the moment a donor accepts this request.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#f9fafb;padding:14px 32px;border-top:1px solid #e5e7eb;text-align:center;">
+          <p style="margin:0;color:#9ca3af;font-size:12px;">SaveLife Blood Donation Network · Bangladesh</p>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text =
+    `Hi ${toName},\n\nYour blood request ${reqId} has been posted on SaveLife.\n\n` +
+    `Patient: ${request.patient_name}\n` +
+    `Blood Type: ${request.blood_type} (${label})\n` +
+    `Units: ${request.units_needed}\nUrgency: ${request.urgency}\n` +
+    (request.hospital ? `Hospital: ${request.hospital}\n` : "") +
+    `\nWe'll email you when a donor responds.\n\n— SaveLife`;
+
+  await send({
+    to: `"${toName}" <${toEmail}>`,
+    subject: `SaveLife: Your ${request.blood_type} ${label} request (${reqId}) is live`,
+    html,
+    text,
+  });
+}
+
+// Thank-you email to the DONOR when they agree to donate (contact revealed).
+export async function sendDonorThankYouEmail({ toEmail, toName, bloodType, donationType, patientName, hospital }) {
+  const label = {
+    blood: "Blood", plasma: "Plasma",
+    platelets: "Platelets", whole_blood: "Whole Blood",
+  }[donationType] || "Blood";
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#fff5f5;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#fff5f5;padding:32px 0;">
+  <tr><td align="center">
+    <table width="520" cellpadding="0" cellspacing="0"
+           style="background:#ffffff;border-radius:10px;overflow:hidden;border:1px solid #fecaca;max-width:520px;">
+      <tr>
+        <td style="background:#c0392b;padding:24px 32px;text-align:center;">
+          <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:bold;">SaveLife</h1>
+          <p style="margin:6px 0 0;color:#fca5a5;font-size:13px;">Blood Donation Network</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#fef2f2;padding:16px 32px;border-bottom:1px solid #fecaca;text-align:center;">
+          <p style="margin:0;font-size:26px;">🩸</p>
+          <h2 style="margin:6px 0 0;color:#991b1b;font-size:17px;font-weight:bold;">Thank You for Donating!</h2>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:28px 32px;">
+          <p style="margin:0 0 20px;color:#374151;font-size:15px;line-height:1.65;">
+            Hi <strong>${toName}</strong>, you are a hero! 🦸 You have agreed to donate
+            <strong>${label}</strong> on SaveLife. The requester has been notified and
+            will be contacting you shortly.
+          </p>
+          <table width="100%" cellpadding="0" cellspacing="0"
+                 style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;margin-bottom:20px;">
+            <tr>
+              <td style="padding:18px 20px;">
+                <p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">Patient</p>
+                <p style="margin:0 0 12px;color:#1f2937;font-size:15px;font-weight:bold;">${patientName}</p>
+                <p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">Donation Type</p>
+                <p style="margin:0 0 12px;color:#c0392b;font-size:16px;font-weight:bold;">${bloodType} ${label}</p>
+                ${hospital ? `<p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">Hospital</p>
+                <p style="margin:0;color:#1f2937;font-size:14px;">${hospital}</p>` : ""}
+              </td>
+            </tr>
+          </table>
+          <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.6;text-align:center;">
+            Your generosity saves lives. Thank you from the entire SaveLife community. ❤️
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#f9fafb;padding:14px 32px;border-top:1px solid #e5e7eb;text-align:center;">
+          <p style="margin:0;color:#9ca3af;font-size:12px;">SaveLife Blood Donation Network · Bangladesh</p>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text =
+    `Hi ${toName},\n\nThank you for agreeing to donate ${label} on SaveLife!\n\n` +
+    `Patient: ${patientName}\nDonation: ${bloodType} ${label}\n` +
+    (hospital ? `Hospital: ${hospital}\n` : "") +
+    `\nThe requester has been notified and will contact you shortly.\n\nThank you for saving a life! ❤️\n\n— SaveLife`;
+
+  await send({
+    to: `"${toName}" <${toEmail}>`,
+    subject: `SaveLife: Thank you for donating ${bloodType} ${label}!`,
+    html,
+    text,
+  });
+}
+
+// Hospital booking confirmation email.
+export async function sendHospitalBookingEmail({ toEmail, toName, booking, hospitalName }) {
+  const bookingId = `HB-${String(booking.id).padStart(6, "0")}`;
+  const statusBadge = booking.status === "confirmed" ? "✅ Confirmed" : "⏳ Pending Review";
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#eff6ff;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#eff6ff;padding:32px 0;">
+  <tr><td align="center">
+    <table width="520" cellpadding="0" cellspacing="0"
+           style="background:#ffffff;border-radius:10px;overflow:hidden;border:1px solid #bfdbfe;max-width:520px;">
+      <tr>
+        <td style="background:#1d4ed8;padding:24px 32px;text-align:center;">
+          <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:bold;">🏥 SaveLife</h1>
+          <p style="margin:6px 0 0;color:#bfdbfe;font-size:13px;">Hospital Booking Service</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#eff6ff;padding:16px 32px;border-bottom:1px solid #bfdbfe;text-align:center;">
+          <p style="margin:0;font-size:20px;">🏥</p>
+          <h2 style="margin:6px 0 0;color:#1e3a8a;font-size:17px;font-weight:bold;">Booking ${statusBadge}</h2>
+          <p style="margin:4px 0 0;color:#2563eb;font-size:12px;font-weight:bold;font-family:monospace;letter-spacing:0.06em;">${bookingId}</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:28px 32px;">
+          <p style="margin:0 0 20px;color:#374151;font-size:15px;line-height:1.65;">
+            Hi <strong>${toName}</strong>, your hospital booking at
+            <strong>${hospitalName}</strong> has been received.
+            ${booking.status === "confirmed"
+              ? "Your booking is confirmed — please arrive on time."
+              : "Our team will review and confirm your booking shortly."}
+          </p>
+          <table width="100%" cellpadding="0" cellspacing="0"
+                 style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;margin-bottom:16px;">
+            <tr>
+              <td style="padding:18px 20px;">
+                <p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">Hospital</p>
+                <p style="margin:0 0 12px;color:#1f2937;font-size:17px;font-weight:bold;">${hospitalName}</p>
+                <p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">Patient</p>
+                <p style="margin:0 0 12px;color:#1f2937;font-size:15px;font-weight:bold;">${booking.patient_name}${booking.patient_age ? `, ${booking.patient_age} yrs` : ""}</p>
+                <p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">Ward Type</p>
+                <p style="margin:0 0 12px;color:#1f2937;font-size:15px;font-weight:bold;">${booking.ward_type || "General"}</p>
+                ${booking.booking_date ? `<p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">Admission Date</p>
+                <p style="margin:0 0 12px;color:#1f2937;font-size:15px;font-weight:bold;">${new Date(booking.booking_date).toLocaleDateString("en-GB", { day:"numeric",month:"long",year:"numeric" })}</p>` : ""}
+                ${booking.advance_paid && booking.advance_amount > 0 ? `<p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">Advance Paid</p>
+                <p style="margin:0;color:#1d4ed8;font-size:15px;font-weight:bold;">৳${Number(booking.advance_amount).toFixed(0)} (${booking.payment_method || ""})</p>` : ""}
+              </td>
+            </tr>
+          </table>
+          <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.6;text-align:center;">
+            Please bring this email and your NID/passport on admission day.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#f9fafb;padding:14px 32px;border-top:1px solid #e5e7eb;text-align:center;">
+          <p style="margin:0;color:#9ca3af;font-size:12px;">SaveLife Hospital Services · Bangladesh</p>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text =
+    `Hi ${toName},\n\nYour hospital booking ${bookingId} has been ${booking.status}.\n\n` +
+    `Hospital: ${hospitalName}\n` +
+    `Patient: ${booking.patient_name}\n` +
+    `Ward: ${booking.ward_type || "General"}\n` +
+    (booking.booking_date ? `Admission Date: ${booking.booking_date}\n` : "") +
+    (booking.advance_paid && booking.advance_amount > 0 ? `Advance Paid: ৳${Number(booking.advance_amount).toFixed(0)}\n` : "") +
+    `\nPlease bring this email and your ID on admission day.\n\n— SaveLife`;
+
+  await send({
+    to: `"${toName}" <${toEmail}>`,
+    subject: `SaveLife Hospital Booking ${statusBadge}: ${bookingId} — ${hospitalName}`,
+    html,
+    text,
+  });
+}
+
+// Doctor appointment confirmation email.
+export async function sendDoctorAppointmentEmail({ toEmail, toName, appointment, doctor }) {
+  const apptId = `APT-${String(appointment.id).padStart(6, "0")}`;
+  const apptDate = appointment.appointment_date
+    ? new Date(appointment.appointment_date).toLocaleDateString("en-GB", { weekday:"long", day:"numeric", month:"long", year:"numeric" })
+    : "TBD";
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f0fdf4;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f0fdf4;padding:32px 0;">
+  <tr><td align="center">
+    <table width="520" cellpadding="0" cellspacing="0"
+           style="background:#ffffff;border-radius:10px;overflow:hidden;border:1px solid #bbf7d0;max-width:520px;">
+      <tr>
+        <td style="background:#15803d;padding:24px 32px;text-align:center;">
+          <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:bold;">👨‍⚕️ SaveLife</h1>
+          <p style="margin:6px 0 0;color:#86efac;font-size:13px;">Doctor Appointment Service</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#f0fdf4;padding:16px 32px;border-bottom:1px solid #bbf7d0;text-align:center;">
+          <p style="margin:0;font-size:20px;">✅</p>
+          <h2 style="margin:6px 0 0;color:#14532d;font-size:17px;font-weight:bold;">Appointment Confirmed</h2>
+          <p style="margin:4px 0 0;color:#16a34a;font-size:12px;font-weight:bold;font-family:monospace;letter-spacing:0.06em;">${apptId}</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:28px 32px;">
+          <p style="margin:0 0 20px;color:#374151;font-size:15px;line-height:1.65;">
+            Hi <strong>${toName}</strong>, your appointment with
+            <strong>Dr. ${doctor?.name || "the doctor"}</strong> has been confirmed.
+          </p>
+          <table width="100%" cellpadding="0" cellspacing="0"
+                 style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;margin-bottom:16px;">
+            <tr>
+              <td style="padding:18px 20px;">
+                <p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">Doctor</p>
+                <p style="margin:0 0 4px;color:#1f2937;font-size:17px;font-weight:bold;">Dr. ${doctor?.name || "—"}</p>
+                <p style="margin:0 0 12px;color:#16a34a;font-size:13px;">${doctor?.specialty || ""}</p>
+                <p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">Patient</p>
+                <p style="margin:0 0 12px;color:#1f2937;font-size:15px;font-weight:bold;">${appointment.patient_name}${appointment.patient_age ? `, ${appointment.patient_age} yrs` : ""}</p>
+                <p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">Date &amp; Time</p>
+                <p style="margin:0 0 12px;color:#1f2937;font-size:15px;font-weight:bold;">${apptDate}${appointment.appointment_time ? " at " + appointment.appointment_time : ""}</p>
+                ${doctor?.hospital ? `<p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">Hospital</p>
+                <p style="margin:0 0 12px;color:#1f2937;font-size:14px;">${doctor.hospital}${doctor.city ? ", " + doctor.city : ""}</p>` : ""}
+                ${doctor?.consultation_fee ? `<p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">Consultation Fee</p>
+                <p style="margin:0;color:#15803d;font-size:15px;font-weight:bold;">৳${doctor.consultation_fee}</p>` : ""}
+              </td>
+            </tr>
+          </table>
+          ${appointment.reason ? `<table width="100%" cellpadding="0" cellspacing="0"
+                 style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:16px;">
+            <tr>
+              <td style="padding:14px 20px;">
+                <p style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;font-weight:700;">Reason for Visit</p>
+                <p style="margin:0;color:#374151;font-size:14px;">${appointment.reason}</p>
+              </td>
+            </tr>
+          </table>` : ""}
+          <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.6;text-align:center;">
+            Please arrive 15 minutes early and bring any previous medical records.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#f9fafb;padding:14px 32px;border-top:1px solid #e5e7eb;text-align:center;">
+          <p style="margin:0;color:#9ca3af;font-size:12px;">SaveLife Doctor Services · Bangladesh</p>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text =
+    `Hi ${toName},\n\nYour appointment ${apptId} is confirmed!\n\n` +
+    `Doctor: Dr. ${doctor?.name || "—"} (${doctor?.specialty || ""})\n` +
+    `Patient: ${appointment.patient_name}\n` +
+    `Date: ${apptDate}${appointment.appointment_time ? " at " + appointment.appointment_time : ""}\n` +
+    (doctor?.hospital ? `Hospital: ${doctor.hospital}\n` : "") +
+    (doctor?.consultation_fee ? `Fee: ৳${doctor.consultation_fee}\n` : "") +
+    `\nPlease arrive 15 minutes early and bring any previous medical records.\n\n— SaveLife`;
+
+  await send({
+    to: `"${toName}" <${toEmail}>`,
+    subject: `SaveLife: Appointment Confirmed ${apptId} — Dr. ${doctor?.name || ""}`,
+    html,
+    text,
+  });
+}
+
 // Send a test email to verify the setup is working.
 export async function sendTestEmail(toEmail, toName) {
   if (!emailConfigured()) {

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { query } from "../db/pool.js";
 import { requireAuth } from "../middleware/auth.js";
-import { sendDonorAcceptedEmail } from "../utils/email.js";
+import { sendDonorAcceptedEmail, sendBloodRequestEmail, sendDonorThankYouEmail } from "../utils/email.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -39,7 +39,7 @@ router.post("/", async (req, res) => {
          (requester_id, patient_name, blood_type, donation_type, units_needed,
           hospital, location, contact_phone, urgency, note)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-       RETURNING id, created_at`,
+       RETURNING id, created_at, patient_name, blood_type, donation_type, units_needed, hospital, urgency`,
       [
         req.user.id,
         patient_name,
@@ -53,7 +53,17 @@ router.post("/", async (req, res) => {
         note || null,
       ]
     );
-    res.status(201).json({ request: rows[0] });
+    const request = rows[0];
+
+    // Notify requester that their request is live
+    query("SELECT name, email FROM users WHERE id = $1", [req.user.id])
+      .then(({ rows: uRows }) => {
+        const u = uRows[0];
+        if (u) sendBloodRequestEmail({ toEmail: u.email, toName: u.name, request }).catch(() => {});
+      })
+      .catch(() => {});
+
+    res.status(201).json({ request });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to create request" });
@@ -96,12 +106,12 @@ router.get("/:id/contact", async (req, res) => {
 
   const { patient_name, contact_phone, requester_id, requester_code } = rows[0];
 
-  // Fire-and-forget email notification to the requester
+  // Fire-and-forget: notify requester + thank the donor
   if (requester_id && requester_id !== req.user.id) {
     query(
       `SELECT u.name AS requester_name, u.email AS requester_email,
-              d.name AS donor_name, d.phone AS donor_phone,
-              br.blood_type, br.donation_type, br.units_needed, br.hospital
+              d.name AS donor_name, d.email AS donor_email, d.phone AS donor_phone,
+              br.blood_type, br.donation_type, br.units_needed, br.hospital, br.patient_name
        FROM blood_requests br
        JOIN users u ON u.id = br.requester_id
        JOIN users d ON d.id = $2
@@ -119,7 +129,15 @@ router.get("/:id/contact", async (req, res) => {
           donationType: r.donation_type || "blood",
           units: r.units_needed,
           hospital: r.hospital,
-        });
+        }).catch(() => {});
+        sendDonorThankYouEmail({
+          toEmail: r.donor_email,
+          toName: r.donor_name,
+          bloodType: r.blood_type,
+          donationType: r.donation_type || "blood",
+          patientName: r.patient_name,
+          hospital: r.hospital,
+        }).catch(() => {});
       }
     }).catch(() => {});
   }

@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { query } from "../db/pool.js";
 import { requireAuth } from "../middleware/auth.js";
 import { generateUserCode } from "../utils/credentials.js";
-import { sendTestEmail, emailConfigured } from "../utils/email.js";
+import { sendTestEmail, emailConfigured, sendWelcomeEmail } from "../utils/email.js";
 
 const router = Router();
 
@@ -104,6 +104,15 @@ router.post("/register", async (req, res) => {
     );
 
     const user = result.rows[0];
+
+    // Welcome email — fire and forget
+    sendWelcomeEmail({
+      toEmail: user.email,
+      toName: user.name,
+      userCode: user.user_code,
+      bloodType: user.blood_type,
+    }).catch((e) => console.warn("[auth] Welcome email failed:", e.message));
+
     res.status(201).json({
       user,
       credentials: { user_code: user.user_code },

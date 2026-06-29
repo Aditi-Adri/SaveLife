@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { query } from "../db/pool.js";
 import { requireAuth } from "../middleware/auth.js";
+import { sendDoctorAppointmentEmail } from "../utils/email.js";
 
 const router = Router();
 
@@ -54,7 +55,25 @@ router.post("/appointments", requireAuth, async (req, res) => {
     );
 
     const docResult = await query("SELECT * FROM doctors WHERE id = $1", [doctor_id]);
-    res.status(201).json({ appointment: result.rows[0], doctor: docResult.rows[0] });
+    const appointment = result.rows[0];
+    const doctor = docResult.rows[0];
+
+    // Send confirmation email to the patient
+    query("SELECT name, email FROM users WHERE id = $1", [req.user.id])
+      .then(({ rows: uRows }) => {
+        const u = uRows[0];
+        if (u) {
+          sendDoctorAppointmentEmail({
+            toEmail: u.email,
+            toName: u.name,
+            appointment,
+            doctor,
+          }).catch(() => {});
+        }
+      })
+      .catch(() => {});
+
+    res.status(201).json({ appointment, doctor });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to book appointment" });
