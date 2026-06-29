@@ -82,7 +82,7 @@ const POLICIES = [
   },
 ];
 
-export default function Home({ onGetStarted }) {
+export default function Home({ onGetStarted, onLogin }) {
   return (
     <div className="home">
       {/* Navbar */}
@@ -103,7 +103,7 @@ export default function Home({ onGetStarted }) {
           </span>
         </a>
         <ThemeToggle />
-        <button className="btn btn-primary" onClick={onGetStarted}>Log in / Sign up</button>
+        <button className="btn btn-primary" onClick={onLogin || onGetStarted}>Log in / Sign up</button>
       </header>
 
       {/* Hero */}

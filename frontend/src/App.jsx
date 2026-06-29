@@ -146,7 +146,7 @@ export default function App() {
   }
 
   // ---- Logged-out: Home -> Explore -> Auth (auth only on Donate/Request) ----
-  if (view === "home") return <Home onGetStarted={() => setView("explore")} />;
+  if (view === "home") return <Home onGetStarted={() => setView("explore")} onLogin={goAuth} />;
   if (view === "leaderboard")
     return <Leaderboard user={null} onBack={() => setView("explore")} />;
   if (view === "bloodguide")
