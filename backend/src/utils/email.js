@@ -9,9 +9,11 @@ let _transporter = null;
 function transport() {
   if (_transporter) return _transporter;
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return null;
+  // Gmail app passwords are shown with spaces (xxxx xxxx xxxx xxxx) but must be used without
+  const pass = process.env.EMAIL_PASS.replace(/\s+/g, "");
   _transporter = nodemailer.createTransport({
     service: "gmail",
-    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+    auth: { user: process.env.EMAIL_USER, pass },
   });
   return _transporter;
 }
