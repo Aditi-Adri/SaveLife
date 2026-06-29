@@ -61,6 +61,7 @@
 
 ## 📁 Project Structure
 
+```
 SaveLife/
 ├── backend/
 │   ├── src/
@@ -116,8 +117,7 @@ SaveLife/
 │   │   ├── badges.js             # 10 achievement badge definitions
 │   │   └── main.jsx              # React entry point
 │   └── package.json
-
-
+```
 
 ---
 
