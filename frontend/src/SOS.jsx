@@ -102,6 +102,7 @@ export default function SOSWidget({ user }) {
 
       {stage !== "idle" && (
         <div className="sos-overlay">
+          <div className="sos-overlay-inner">
 
           {stage === "confirm" && (
             <div className="sos-dialog">
@@ -229,6 +230,7 @@ export default function SOSWidget({ user }) {
             </div>
           )}
 
+          </div>{/* sos-overlay-inner */}
         </div>
       )}
     </>
