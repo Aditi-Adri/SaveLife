@@ -34,12 +34,10 @@ function timeAgo(iso) {
 function dateStr(d) { return d ? new Date(d).toLocaleDateString() : null; }
 
 export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLogout, onHospitals, onAmbulance, onDoctors }) {
-  const [tab, setTab]               = useState("requests");
   const [filters, setFilters]       = useState(EMPTY_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
   const [stats, setStats]           = useState(null);
   const [requests, setRequests]     = useState([]);
-  const [donors, setDonors]         = useState([]);
   const [myRequests, setMyRequests] = useState([]);
   const [loading, setLoading]       = useState(false);
   const [error, setError]           = useState("");
@@ -67,17 +65,15 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
     if (user) api.myRequests().then(d => setMyRequests(d.requests)).catch(() => {});
   }, []);
 
-  // Reload data whenever tab or filters change
+  // Reload requests whenever filters change
   useEffect(() => {
-    if (tab === "donors" && !user) { setLoading(false); return; }
     setLoading(true);
     setError("");
-    const params = buildParams();
-    const call = tab === "requests"
-      ? api.publicRequests(params).then(d => setRequests(d.requests))
-      : api.publicDonors(params).then(d => setDonors(d.donors));
-    call.catch(e => setError(e.message)).finally(() => setLoading(false));
-  }, [tab, filters, user]);
+    api.publicRequests(buildParams())
+      .then(d => setRequests(d.requests))
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [filters]);
 
   function findNearest() {
     if (!navigator.geolocation) { setLocError("Geolocation not supported."); return; }
@@ -128,7 +124,6 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
   }
 
   const orderedRequests = withDistance(requests);
-  const orderedDonors   = withDistance(donors);
 
   const mapMarkers = orderedRequests.filter(r => r.latitude != null).map(r => ({
     id: r.id, lat: r.latitude, lng: r.longitude, label: r.blood_type,
@@ -204,12 +199,7 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
 
       {/* ── TABS ── */}
       <div className="ex-tabs">
-        <button className={tab === "requests" ? "ex-tab active" : "ex-tab"} onClick={() => setTab("requests")}>
-          🩸 Blood Requests
-        </button>
-        <button className={tab === "donors" ? "ex-tab active" : "ex-tab"} onClick={() => setTab("donors")}>
-          👥 Find Donors
-        </button>
+        <button className="ex-tab active">🩸 Blood Requests</button>
         <button className="ex-tab filter-toggle" onClick={() => setShowFilters(v => !v)}>
           ⚙ Filters {activeFilters > 0 && <span className="filter-badge">{activeFilters}</span>}
         </button>
@@ -247,37 +237,33 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
             </div>
           </div>
 
-          {/* Donation Type — requests only */}
-          {tab === "requests" && (
-            <div className="filter-group">
-              <label>Donation Type</label>
-              <div className="filter-chips">
-                {Object.entries(DTYPE_LABEL).map(([k, v]) => (
-                  <button key={k}
-                    className={`chip ${filters.donation_type === k ? "chip-active" : ""}`}
-                    onClick={() => setFilter("donation_type", filters.donation_type === k ? "" : k)}>
-                    {v}
-                  </button>
-                ))}
-              </div>
+          {/* Donation Type */}
+          <div className="filter-group">
+            <label>Donation Type</label>
+            <div className="filter-chips">
+              {Object.entries(DTYPE_LABEL).map(([k, v]) => (
+                <button key={k}
+                  className={`chip ${filters.donation_type === k ? "chip-active" : ""}`}
+                  onClick={() => setFilter("donation_type", filters.donation_type === k ? "" : k)}>
+                  {v}
+                </button>
+              ))}
             </div>
-          )}
+          </div>
 
-          {/* Urgency — requests only */}
-          {tab === "requests" && (
-            <div className="filter-group">
-              <label>Urgency</label>
-              <div className="filter-chips">
-                {["critical", "urgent", "normal"].map(u => (
-                  <button key={u}
-                    className={`chip chip-urg-${u} ${filters.urgency === u ? "chip-active" : ""}`}
-                    onClick={() => setFilter("urgency", filters.urgency === u ? "" : u)}>
-                    {u.charAt(0).toUpperCase() + u.slice(1)}
-                  </button>
-                ))}
-              </div>
+          {/* Urgency */}
+          <div className="filter-group">
+            <label>Urgency</label>
+            <div className="filter-chips">
+              {["critical", "urgent", "normal"].map(u => (
+                <button key={u}
+                  className={`chip chip-urg-${u} ${filters.urgency === u ? "chip-active" : ""}`}
+                  onClick={() => setFilter("urgency", filters.urgency === u ? "" : u)}>
+                  {u.charAt(0).toUpperCase() + u.slice(1)}
+                </button>
+              ))}
             </div>
-          )}
+          </div>
 
           {/* Gender */}
           <div className="filter-group">
@@ -339,48 +325,24 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
         {/* ── MAIN CONTENT ── */}
         <main className="ex-main">
           {error && <p className="ex-error">{error}</p>}
-
-          {tab === "requests" ? (
-            <>
-              {mapMarkers.length > 0 && (
-                <div className="ex-map-wrap">
-                  <LeafletMap markers={mapMarkers} userLocation={userLocation} height={300} />
-                </div>
-              )}
-              {loading ? <p className="ex-muted">Loading…</p>
-                : orderedRequests.length === 0 ? <p className="ex-muted">No requests match your filters.</p>
-                : (
-                  <div className="req-grid">
-                    {orderedRequests.map(r => (
-                      <RequestCard key={r.id} r={r} info={revealed[r.id]}
-                        onOpen={() => openProfile("request", r)}
-                        onAccept={() => accept(r.id)}
-                        accepting={revealing === r.id}
-                        user={user} onAuth={onAuth} />
-                    ))}
-                  </div>
-                )}
-            </>
-          ) : (
-            <>
-              {!user ? (
-                <div className="donor-auth-wall">
-                  <div className="daw-icon">🔒</div>
-                  <h3>Login to find donors</h3>
-                  <p>Donor profiles contain personal information and are only visible to registered members of SaveLife.</p>
-                  <button className="daw-btn" onClick={onAuth}>Sign in / Register</button>
-                </div>
-              ) : loading ? <p className="ex-muted">Loading donors…</p>
-                : orderedDonors.length === 0 ? <p className="ex-muted">No donors match your filters.</p>
-                : (
-                  <div className="donor-grid">
-                    {orderedDonors.map(d => (
-                      <DonorCard key={d.id} donor={d} onOpen={() => openProfile("donor", d)} />
-                    ))}
-                  </div>
-                )}
-            </>
+          {mapMarkers.length > 0 && (
+            <div className="ex-map-wrap">
+              <LeafletMap markers={mapMarkers} userLocation={userLocation} height={300} />
+            </div>
           )}
+          {loading ? <p className="ex-muted">Loading…</p>
+            : orderedRequests.length === 0 ? <p className="ex-muted">No requests match your filters.</p>
+            : (
+              <div className="req-grid">
+                {orderedRequests.map(r => (
+                  <RequestCard key={r.id} r={r} info={revealed[r.id]}
+                    onOpen={() => openProfile("request", r)}
+                    onAccept={() => accept(r.id)}
+                    accepting={revealing === r.id}
+                    user={user} onAuth={onAuth} />
+                ))}
+              </div>
+            )}
         </main>
       </div>
 
@@ -481,35 +443,6 @@ function RequestCard({ r, info, onOpen, onAccept, accepting, user, onAuth }) {
   );
 }
 
-/* ── DONOR CARD ── */
-function DonorCard({ donor: d, onOpen }) {
-  return (
-    <div className="donor-card" onClick={onOpen} role="button">
-      <div className="dc-avatar">
-        {d.avatar_url
-          ? <img src={d.avatar_url} alt={d.name} />
-          : <div className="dc-avatar-ph">{d.name?.[0]?.toUpperCase()}</div>}
-      </div>
-      <div className="dc-info">
-        <div className="dc-top">
-          <span className="blood-badge">{d.blood_type || "?"}</span>
-          {d.donation_count > 0 && <span className="dc-donated">{d.donation_count}× donated</span>}
-        </div>
-        <h3 className="dc-name">{d.name}</h3>
-        <div className="dc-tags">
-          {d.age && <span>{d.age} yrs</span>}
-          {d.gender && <span>{d.gender}</span>}
-          {d.religion && <span>{d.religion}</span>}
-          {d.drug_addicted === false && <span className="safe">Drug-free</span>}
-        </div>
-        {d.location_text && <p className="dc-loc">📍 {d.location_text}</p>}
-        {d.distance != null && <p className="dc-dist">🧭 {fmtKm(d.distance)} away</p>}
-        {d.last_donation && <p className="dc-last">Last donated: {dateStr(d.last_donation)}</p>}
-      </div>
-    </div>
-  );
-}
-
 /* ── PROFILE MODAL ── */
 function ProfileModal({ type, item, profile, profileLoading, revealed, onClose, onAccept, accepting, user, onAuth }) {
   return (
@@ -547,10 +480,6 @@ function ProfileModal({ type, item, profile, profileLoading, revealed, onClose, 
                   : <div className="pm-avatar-ph">{profile.name?.[0]?.toUpperCase()}</div>}
               </div>
               <h2 className="pm-name">{profile.name}</h2>
-              {type === "donor" && profile.blood_type && (
-                <span className="blood-badge lg">{profile.blood_type}</span>
-              )}
-
               <div className="pm-stats">
                 {profile.age      && <div className="pm-stat"><strong>{profile.age}</strong><span>Age</span></div>}
                 {profile.gender   && <div className="pm-stat"><strong>{profile.gender}</strong><span>Gender</span></div>}
@@ -604,14 +533,6 @@ function ProfileModal({ type, item, profile, profileLoading, revealed, onClose, 
           </div>
         )}
 
-        {type === "donor" && (
-          <div className="pm-actions">
-            <p className="pm-donor-hint">
-              Interested in this donor? Post a blood request with blood type
-              <strong> {profile?.blood_type || item?.blood_type}</strong> and compatible donors will see it.
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

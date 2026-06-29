@@ -65,45 +65,6 @@ router.get("/requests", async (req, res) => {
   }
 });
 
-// GET /api/public/donors — browse registered donors with rich filters.
-// Supports: blood_type, gender, religion, drug_free, min_age, max_age, q (name/location search)
-router.get("/donors", async (req, res) => {
-  try {
-    const { blood_type, gender, religion, drug_free, min_age, max_age, q } = req.query;
-    const conds = ["1=1"];
-    const params = [];
-    let i = 1;
-
-    if (blood_type) { conds.push(`u.blood_type = $${i++}`);   params.push(blood_type); }
-    if (gender)     { conds.push(`u.gender = $${i++}`);        params.push(gender); }
-    if (religion)   { conds.push(`u.religion = $${i++}`);      params.push(religion); }
-    if (drug_free === "true") conds.push("(u.drug_addicted = false OR u.drug_addicted IS NULL)");
-    if (min_age)    { conds.push(`u.age >= $${i++}`);           params.push(parseInt(min_age, 10)); }
-    if (max_age)    { conds.push(`u.age <= $${i++}`);           params.push(parseInt(max_age, 10)); }
-    if (q) {
-      conds.push(`(u.name ILIKE $${i} OR u.location_text ILIKE $${i})`);
-      params.push(`%${q}%`);
-      i++;
-    }
-
-    const sql = `
-      SELECT u.id, u.name, u.blood_type, u.age, u.gender, u.religion,
-             u.drug_addicted, u.medical_conditions, u.avatar_url,
-             u.donation_count, u.last_donation, u.location_text,
-             u.latitude, u.longitude, u.created_at
-        FROM users u
-       WHERE ${conds.join(" AND ")}
-       ORDER BY u.donation_count DESC NULLS LAST, u.created_at DESC
-       LIMIT 60`;
-
-    const result = await query(sql, params);
-    res.json({ donors: result.rows });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to load donors" });
-  }
-});
-
 // GET /api/public/profile/:id — public (non-sensitive) profile of any user.
 router.get("/profile/:id", async (req, res) => {
   try {

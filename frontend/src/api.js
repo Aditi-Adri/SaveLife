@@ -45,12 +45,6 @@ export const api = {
     const qs = q.toString();
     return request(`/public/requests${qs ? "?" + qs : ""}`);
   },
-  publicDonors: (filters = {}) => {
-    const q = new URLSearchParams();
-    Object.entries(filters).forEach(([k, v]) => { if (v !== "" && v !== false && v != null) q.set(k, v); });
-    const qs = q.toString();
-    return request(`/public/donors${qs ? "?" + qs : ""}`);
-  },
   publicProfile: (id) => request(`/public/profile/${id}`),
 
   // reveal a request's contact (auth required) — also fires push notification to requester
