@@ -1,6 +1,10 @@
 # Dependencies
 node_modules/
 
+# User-uploaded files (local dev only)
+backend/uploads/avatars/
+backend/uploads/documents/
+
 # Build output
 dist/
 build/

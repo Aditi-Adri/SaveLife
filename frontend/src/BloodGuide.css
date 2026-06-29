@@ -1,0 +1,502 @@
+/* ── Layout ──────────────────────────────────────────────────────────────── */
+.bgg-page { min-height: 100vh; background: var(--bg); color: var(--text); font-family: inherit; }
+
+/* ── Nav ──────────────────────────────────────────────────────────────────── */
+.bgg-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 28px; height: 60px;
+  background: var(--card); border-bottom: 1px solid var(--line);
+  position: sticky; top: 0; z-index: 100;
+}
+.bgg-brand { font-size: 1.15rem; font-weight: 800; color: #dc2626; cursor: pointer; text-decoration: none; }
+.bgg-brand span { color: var(--text); }
+.bgg-nav-right { display: flex; align-items: center; gap: 12px; }
+.bgg-back {
+  padding: 6px 14px; border-radius: 8px; border: 1px solid var(--line);
+  background: transparent; color: var(--text); cursor: pointer; font-size: 0.88rem;
+}
+.bgg-back:hover { background: var(--line); }
+
+/* ── Hero ────────────────────────────────────────────────────────────────── */
+.bgg-hero {
+  text-align: center; padding: 48px 24px 32px;
+  background: linear-gradient(180deg, rgba(220,38,38,0.07) 0%, transparent 100%);
+}
+.bgg-hero-drop { display: flex; justify-content: center; margin-bottom: 18px; }
+.bgg-drop-svg { width: 80px; height: 104px; animation: drop-pulse 2.8s ease-in-out infinite; }
+@keyframes drop-pulse {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-6px) scale(1.06); }
+}
+.bgg-hero-title { font-size: clamp(1.7rem, 4vw, 2.6rem); font-weight: 900; margin: 0 0 10px; }
+.bgg-hero-sub   { color: var(--muted); font-size: 1.05rem; max-width: 520px; margin: 0 auto 28px; }
+
+.bgg-fact-strip {
+  display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+  max-width: 760px; margin: 0 auto;
+}
+.bgg-fact {
+  background: var(--card); border: 1px solid var(--line); border-radius: 20px;
+  padding: 6px 14px; font-size: 0.82rem; color: var(--muted);
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* ── Tabs ────────────────────────────────────────────────────────────────── */
+.bgg-tabs {
+  display: flex; gap: 4px; padding: 0 24px; border-bottom: 1px solid var(--line);
+  background: var(--card); position: sticky; top: 60px; z-index: 90;
+}
+.bgg-tab {
+  padding: 14px 22px; background: none; border: none; border-bottom: 3px solid transparent;
+  color: var(--muted); font-size: 0.92rem; font-weight: 600; cursor: pointer;
+  transition: color .2s, border-color .2s; white-space: nowrap;
+}
+.bgg-tab:hover { color: var(--text); }
+.bgg-tab-on   { color: #dc2626 !important; border-bottom-color: #dc2626 !important; }
+
+/* ── Section ─────────────────────────────────────────────────────────────── */
+.bgg-section { max-width: 900px; margin: 0 auto; padding: 32px 20px 80px; }
+
+/* ── Blood type picker ───────────────────────────────────────────────────── */
+.bgg-picker-label { text-align: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 14px; }
+.bgg-type-picker  { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 24px; }
+.bgg-type-btn {
+  width: 74px; height: 74px; border-radius: 14px;
+  border: 2px solid var(--line); background: var(--card);
+  font-size: 1.3rem; font-weight: 800; color: var(--muted);
+  cursor: pointer; transition: all .18s; position: relative;
+}
+.bgg-type-btn:hover {
+  border-color: var(--tc); color: var(--tc);
+  transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+.bgg-type-on {
+  background: var(--tc) !important; border-color: var(--tc) !important;
+  color: #fff !important;
+  transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+}
+
+/* ── Special card ────────────────────────────────────────────────────────── */
+.bgg-special-card {
+  display: flex; align-items: center; gap: 18px;
+  background: var(--card); border: 1.5px solid var(--sc);
+  border-radius: 16px; padding: 18px 24px; margin-bottom: 24px;
+  box-shadow: 0 0 0 4px rgba(var(--sc-rgb, 220,38,38), .07);
+}
+.bgg-special-badge {
+  width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 1.3rem; font-weight: 900;
+}
+.bgg-special-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 4px; }
+.bgg-special-desc  { color: var(--muted); font-size: 0.9rem; }
+
+/* ── View toggle ─────────────────────────────────────────────────────────── */
+.bgg-view-toggle {
+  display: flex; background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 20px;
+}
+.bgg-view-toggle button {
+  flex: 1; padding: 10px; border: none; border-radius: 9px;
+  background: none; color: var(--muted); font-size: 0.9rem; font-weight: 600;
+  cursor: pointer; transition: all .18s;
+}
+.bgg-view-toggle .bgg-vt-on { background: #dc2626; color: #fff; }
+
+/* ── Compat grid ─────────────────────────────────────────────────────────── */
+.bgg-compat-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px;
+}
+.bgg-compat-card {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 14px 8px; border-radius: 14px; border: 1.5px solid var(--line);
+  background: var(--card); transition: all .2s;
+}
+.bgg-compat-yes { border-color: var(--tc) !important; background: rgba(0,0,0,0.02); }
+.bgg-compat-drop { width: 38px; height: 50px; }
+.bgg-compat-drop svg { width: 100%; height: 100%; }
+.bgg-compat-type { font-size: 1rem; font-weight: 800; }
+.bgg-compat-status { font-size: 1.1rem; }
+.bgg-compat-summary { text-align: center; color: var(--muted); font-size: 0.88rem; margin-bottom: 36px; }
+.bgg-picker-hint { text-align: center; color: var(--muted); font-size: 0.9rem; margin: 8px 0 32px; }
+
+/* ── Matrix ──────────────────────────────────────────────────────────────── */
+.bgg-matrix-wrap { margin-bottom: 40px; }
+.bgg-matrix-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+.bgg-matrix-sub   { color: var(--muted); font-size: 0.82rem; margin-bottom: 14px; }
+.bgg-matrix {
+  display: grid; grid-template-columns: 44px repeat(8, 1fr);
+  gap: 3px; overflow-x: auto;
+}
+.bgg-matrix-corner { }
+.bgg-mh {
+  text-align: center; font-size: 0.72rem; font-weight: 800;
+  padding: 6px 2px; white-space: nowrap;
+}
+.bgg-mrow {
+  display: flex; align-items: center; justify-content: flex-end;
+  font-size: 0.72rem; font-weight: 800; padding-right: 6px;
+}
+.bgg-mcell {
+  display: flex; align-items: center; justify-content: center;
+  height: 36px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;
+  transition: all .15s;
+}
+.bgg-m-yes { background: rgba(34,197,94,0.18); color: #16a34a; }
+.bgg-m-no  { background: rgba(239,68,68,0.07);  color: var(--muted); opacity: 0.6; }
+.bgg-m-hl  { box-shadow: inset 0 0 0 2px rgba(220,38,38,0.5); opacity: 1 !important; }
+
+/* ── Intervals ───────────────────────────────────────────────────────────── */
+.bgg-intervals { margin-bottom: 40px; }
+.bgg-intervals-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 14px; }
+.bgg-interval-list   { display: flex; flex-wrap: wrap; gap: 12px; }
+.bgg-interval-card {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 16px 20px; border-radius: 14px; background: var(--card);
+  border: 1.5px solid var(--ic); min-width: 130px; flex: 1;
+}
+.bgg-iv-emoji { font-size: 1.8rem; }
+.bgg-iv-type  { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+.bgg-iv-days  { font-size: 0.82rem; font-weight: 600; }
+
+/* ── Organ hero ──────────────────────────────────────────────────────────── */
+.bgg-organ-hero {
+  text-align: center; padding: 24px 16px 32px;
+  background: var(--card); border-radius: 20px; border: 1px solid var(--line);
+  margin-bottom: 28px;
+}
+.bgg-organ-icons { font-size: 2.2rem; letter-spacing: 6px; margin-bottom: 10px; }
+.bgg-organ-hero h2 { font-size: 1.6rem; font-weight: 900; margin: 0 0 10px; }
+.bgg-organ-hero p  { color: var(--muted); max-width: 480px; margin: 0 auto; font-size: 0.95rem; }
+
+/* ── Organ grid ──────────────────────────────────────────────────────────── */
+.bgg-organ-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 14px; margin-bottom: 36px;
+}
+.bgg-organ-card {
+  padding: 20px; border-radius: 16px; background: var(--card);
+  border: 1.5px solid var(--oc, var(--line));
+  transition: transform .18s, box-shadow .18s;
+}
+.bgg-organ-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.13); }
+.bgg-organ-emoji { font-size: 2.4rem; margin-bottom: 8px; }
+.bgg-organ-name  { font-size: 1.05rem; font-weight: 800; margin-bottom: 10px; color: var(--oc, var(--text)); }
+.bgg-organ-rows  { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.bgg-organ-row   { display: flex; gap: 8px; font-size: 0.82rem; color: var(--muted); }
+.bgg-or-label    { font-weight: 700; color: var(--text); white-space: nowrap; }
+.bgg-organ-note  { font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; }
+
+/* ── Pledge box ──────────────────────────────────────────────────────────── */
+.bgg-pledge-box {
+  background: linear-gradient(135deg, rgba(220,38,38,0.06) 0%, rgba(127,29,29,0.06) 100%);
+  border: 1.5px solid rgba(220,38,38,0.3); border-radius: 20px;
+  padding: 32px 28px; text-align: center; margin-bottom: 32px;
+}
+.bgg-pledge-icon { font-size: 2.6rem; margin-bottom: 10px; }
+.bgg-pledge-box h3  { font-size: 1.4rem; font-weight: 800; margin: 0 0 10px; }
+.bgg-pledge-box > p { color: var(--muted); max-width: 520px; margin: 0 auto 20px; font-size: 0.93rem; }
+.bgg-pledge-steps { display: flex; flex-direction: column; gap: 10px; max-width: 460px; margin: 0 auto 18px; text-align: left; }
+.bgg-ps { display: flex; gap: 12px; align-items: flex-start; font-size: 0.9rem; }
+.bgg-ps span {
+  background: #dc2626; color: #fff; width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.78rem; flex-shrink: 0;
+}
+.bgg-pledge-contact { font-size: 0.82rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; }
+
+/* ── ABO table ───────────────────────────────────────────────────────────── */
+.bgg-organ-abo { margin-bottom: 32px; }
+.bgg-organ-abo-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 14px; }
+.bgg-abo-table { display: flex; flex-direction: column; gap: 10px; }
+.bgg-abo-row {
+  display: grid; grid-template-columns: 100px 28px 1fr 1.4fr;
+  align-items: center; gap: 10px;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; padding: 12px 16px;
+}
+.bgg-abo-donor {
+  color: #fff; font-weight: 800; font-size: 0.85rem;
+  padding: 6px 10px; border-radius: 8px; text-align: center;
+}
+.bgg-abo-arrow { color: var(--muted); font-size: 1.1rem; text-align: center; }
+.bgg-abo-recip { font-weight: 700; font-size: 0.9rem; }
+.bgg-abo-note  { color: var(--muted); font-size: 0.8rem; }
+
+/* ── Tests hero ──────────────────────────────────────────────────────────── */
+.bgg-tests-hero {
+  text-align: center; margin-bottom: 28px;
+}
+.bgg-tests-hero h2 { font-size: 1.6rem; font-weight: 900; margin: 8px 0 8px; }
+.bgg-tests-hero p  { color: var(--muted); font-size: 0.95rem; }
+
+/* ── Checklist ───────────────────────────────────────────────────────────── */
+.bgg-checklist { display: flex; flex-direction: column; gap: 10px; margin-bottom: 40px; }
+.bgg-check-item {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 14px; padding: 16px 18px;
+  transition: box-shadow .18s;
+}
+.bgg-check-item:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.1); }
+.bgg-check-icon { font-size: 1.6rem; flex-shrink: 0; line-height: 1; }
+.bgg-check-body { flex: 1; }
+.bgg-check-title { font-weight: 700; font-size: 0.97rem; margin-bottom: 2px; }
+.bgg-check-rule  { font-size: 0.88rem; color: #dc2626; font-weight: 600; margin-bottom: 3px; }
+.bgg-check-why   { font-size: 0.82rem; color: var(--muted); }
+.bgg-check-mark  {
+  font-size: 1.1rem; color: #16a34a; font-weight: 900;
+  background: rgba(34,197,94,0.12); border-radius: 50%;
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── What to expect ──────────────────────────────────────────────────────── */
+.bgg-expect-box { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 24px; margin-bottom: 36px; }
+.bgg-expect-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 18px; }
+.bgg-expect-steps { display: flex; flex-direction: column; gap: 12px; }
+.bgg-expect-step  {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 12px 0; border-bottom: 1px solid var(--line);
+}
+.bgg-expect-step:last-child { border-bottom: none; padding-bottom: 0; }
+.bgg-es-icon  { font-size: 1.6rem; flex-shrink: 0; }
+.bgg-es-body  { flex: 1; }
+.bgg-es-title { font-weight: 700; font-size: 0.93rem; margin-bottom: 2px; }
+.bgg-es-desc  { font-size: 0.84rem; color: var(--muted); }
+.bgg-es-num   {
+  font-size: 1.1rem; font-weight: 900; color: #dc2626;
+  opacity: 0.25; flex-shrink: 0; align-self: center;
+}
+
+/* ── Recovery timeline ───────────────────────────────────────────────────── */
+.bgg-recovery { margin-bottom: 36px; }
+.bgg-recovery-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 18px; }
+.bgg-timeline { display: flex; flex-direction: column; gap: 0; position: relative; padding-left: 28px; }
+.bgg-timeline::before {
+  content: ""; position: absolute; left: 9px; top: 8px; bottom: 8px;
+  width: 2px; background: var(--line); border-radius: 2px;
+}
+.bgg-tl-item { display: flex; align-items: baseline; gap: 14px; padding: 10px 0; position: relative; }
+.bgg-tl-dot  {
+  position: absolute; left: -24px; top: 14px;
+  width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+  border: 2px solid var(--bg);
+}
+.bgg-tl-time { font-weight: 800; font-size: 0.85rem; white-space: nowrap; min-width: 72px; }
+.bgg-tl-text { font-size: 0.88rem; color: var(--muted); }
+
+/* ── Blood banks grid ────────────────────────────────────────────────────── */
+.bgg-banks-box { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 24px; }
+.bgg-banks-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 18px; }
+.bgg-banks-grid  { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.bgg-bank-card   {
+  background: var(--bg); border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px 14px; display: flex; flex-direction: column; gap: 4px;
+}
+.bgg-bank-city { font-size: 0.72rem; font-weight: 700; color: #dc2626; text-transform: uppercase; letter-spacing: .06em; }
+.bgg-bank-name { font-size: 0.82rem; font-weight: 600; line-height: 1.35; }
+.bgg-bank-phone { font-size: 0.8rem; color: var(--muted); text-decoration: none; }
+.bgg-bank-phone:hover { color: #dc2626; }
+
+/* ── Organ pledge — login prompt ─────────────────────────────────────────── */
+.op-login-prompt {
+  background: linear-gradient(135deg, rgba(124,58,237,.07) 0%, rgba(76,29,149,.04) 100%);
+  border: 1.5px solid rgba(124,58,237,.3); border-radius: 20px;
+  padding: 32px 28px; text-align: center; margin-bottom: 32px;
+}
+.op-lp-icon  { font-size: 2.8rem; margin-bottom: 10px; }
+.op-login-prompt h3 { font-size: 1.3rem; font-weight: 800; margin: 0 0 8px; }
+.op-login-prompt p  { color: var(--muted); font-size: .93rem; max-width: 420px; margin: 0 auto 18px; }
+.op-lp-steps { display: flex; flex-direction: column; gap: 8px; max-width: 360px; margin: 0 auto; text-align: left; }
+.op-lp-step  { display: flex; gap: 12px; align-items: center; font-size: .88rem; }
+.op-lp-step span {
+  background: #7c3aed; color: #fff; width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .75rem; font-weight: 700; flex-shrink: 0;
+}
+.op-login-btn {
+  margin-top: 18px; padding: 12px 28px; border-radius: 10px; border: none;
+  background: linear-gradient(135deg,#4c1d95,#7c3aed); color: #fff;
+  font-size: .95rem; font-weight: 700; cursor: pointer; transition: opacity .2s;
+}
+.op-login-btn:hover { opacity: .88; }
+
+/* ── Organ pledge — form ─────────────────────────────────────────────────── */
+.op-form-wrap {
+  background: var(--card); border: 1.5px solid rgba(124,58,237,.25);
+  border-radius: 20px; padding: 28px; margin-bottom: 32px;
+}
+.op-form-header { text-align: center; margin-bottom: 22px; }
+.op-form-icon   { font-size: 2.6rem; margin-bottom: 8px; }
+.op-form-header h2 { font-size: 1.35rem; font-weight: 800; margin: 0 0 6px; }
+.op-form-header p  { color: var(--muted); font-size: .9rem; }
+.op-quick-row {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+}
+.op-select-all {
+  background: none; border: 1px solid #7c3aed; color: #7c3aed;
+  border-radius: 8px; padding: 6px 14px; font-size: .82rem; font-weight: 700;
+  cursor: pointer; transition: all .15s;
+}
+.op-select-all:hover { background: #7c3aed; color: #fff; }
+.op-selected-count { font-size: .82rem; color: var(--muted); }
+.op-organ-checks { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.op-check-card {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg); border: 1.5px solid var(--line);
+  border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all .15s;
+}
+.op-check-card input[type="checkbox"] { display: none; }
+.op-check-card:hover { border-color: #7c3aed; }
+.op-checked { border-color: #7c3aed !important; background: rgba(124,58,237,.06) !important; }
+.op-check-emoji { font-size: 1.5rem; flex-shrink: 0; }
+.op-check-body  { flex: 1; }
+.op-check-label { font-weight: 700; font-size: .92rem; }
+.op-check-note  { font-size: .78rem; color: var(--muted); }
+.op-living-badge {
+  display: inline-block; margin-top: 3px; padding: 2px 8px; border-radius: 10px;
+  background: rgba(34,197,94,.12); color: #16a34a; font-size: .7rem; font-weight: 700;
+}
+.op-check-mark {
+  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  border: 2px solid var(--line); display: flex; align-items: center; justify-content: center;
+  font-size: .8rem; font-weight: 700; color: #7c3aed; transition: all .15s;
+}
+.op-checked .op-check-mark { border-color: #7c3aed; background: #7c3aed; color: #fff; }
+.op-legal-box {
+  background: rgba(245,158,11,.06); border: 1px solid rgba(245,158,11,.3);
+  border-radius: 12px; padding: 14px 16px; margin-bottom: 14px;
+}
+.op-agree-row {
+  display: flex; gap: 12px; align-items: flex-start;
+  font-size: .84rem; color: var(--text); cursor: pointer; line-height: 1.55;
+}
+.op-agree-row input { margin-top: 2px; flex-shrink: 0; accent-color: #7c3aed; }
+.op-error { color: #dc2626; font-size: .84rem; margin-bottom: 10px; }
+.op-submit-btn {
+  width: 100%; padding: 14px; border-radius: 12px; border: none;
+  background: linear-gradient(135deg, #4c1d95, #7c3aed); color: #fff;
+  font-size: 1rem; font-weight: 700; cursor: pointer; transition: opacity .2s; margin-bottom: 10px;
+}
+.op-submit-btn:disabled { opacity: .45; cursor: not-allowed; }
+.op-submit-btn:not(:disabled):hover { opacity: .88; }
+.op-email-note { text-align: center; font-size: .8rem; color: var(--muted); }
+
+/* ── Organ pledge — certificate ──────────────────────────────────────────── */
+.op-cert-wrap { margin-bottom: 32px; }
+.op-cert {
+  border: 3px solid #7c3aed; border-radius: 18px; overflow: hidden;
+  box-shadow: 0 8px 32px rgba(124,58,237,.18); margin-bottom: 14px;
+}
+.op-cert-hdr {
+  background: linear-gradient(135deg,#4c1d95,#7c3aed);
+  padding: 28px 32px; text-align: center; color: #fff;
+}
+.op-cert-hdr-logo  { font-size: 2.2rem; margin-bottom: 6px; }
+.op-cert-hdr-title { font-size: 1.2rem; font-weight: 900; letter-spacing: .04em; }
+.op-cert-hdr-sub   { font-size: .82rem; color: #ddd6fe; margin-top: 4px; }
+.op-cert-body { background: #fff; color: #1a1a2e; padding: 28px 28px 24px; }
+.op-cert-heading {
+  text-align: center; font-size: .95rem; font-weight: 900; letter-spacing: .1em;
+  text-transform: uppercase; color: #4c1d95; margin-bottom: 6px;
+}
+.op-cert-sub  { text-align: center; font-size: .85rem; color: #6b7280; font-style: italic; margin-bottom: 10px; }
+.op-cert-name { text-align: center; font-size: 1.8rem; font-weight: 900; color: #1a1a2e; margin-bottom: 10px; }
+.op-cert-divider { height: 2px; background: #7c3aed; border-radius: 2px; margin-bottom: 14px; opacity: .35; }
+.op-cert-desc { text-align: center; font-size: .88rem; color: #374151; line-height: 1.7; margin-bottom: 18px; }
+.op-cert-organs { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 20px; }
+.op-cert-organ-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #f3e8ff; border: 1px solid #c4b5fd; border-radius: 20px;
+  padding: 5px 13px; font-size: .82rem; font-weight: 600; color: #4c1d95;
+}
+.op-cert-office {
+  background: #fffbeb; border: 1.5px solid #f59e0b; border-radius: 12px;
+  padding: 14px 16px; margin-bottom: 18px; font-size: .82rem; line-height: 1.65; color: #78350f;
+}
+.op-cert-office-title {
+  font-weight: 800; font-size: .85rem; color: #92400e;
+  text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px;
+}
+.op-cert-office address { font-style: normal; margin: 8px 0 6px; color: #374151; }
+.op-office-bring  { margin-top: 6px; color: #374151; }
+.op-cert-footer {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  border-top: 1px solid #e9d5f5; padding-top: 14px; flex-wrap: wrap; gap: 10px;
+}
+.op-cert-meta { font-size: .78rem; color: #6b7280; line-height: 1.9; }
+.op-cert-law  { font-size: .72rem; color: #9ca3af; font-style: italic; }
+.op-cert-sig  { text-align: right; }
+.op-sig-svg   { width: 140px; height: 34px; display: block; margin-bottom: 4px; }
+.op-sig-name  { font-size: .78rem; font-weight: 700; color: #4c1d95; }
+.op-sig-title { font-size: .72rem; color: #6b7280; }
+.op-print-btn {
+  width: 100%; padding: 13px; border-radius: 12px; border: none;
+  background: linear-gradient(135deg, #4c1d95, #7c3aed); color: #fff;
+  font-size: .95rem; font-weight: 700; cursor: pointer; transition: opacity .2s;
+}
+.op-print-btn:hover { opacity: .88; }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .bgg-nav { padding: 0 16px; }
+  .bgg-hero { padding: 36px 16px 24px; }
+  .bgg-section { padding: 24px 14px 60px; }
+
+  /* Compat grid: 4-col stays, just shrink cards */
+  .bgg-compat-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .bgg-compat-card { padding: 10px 4px; }
+
+  /* Organ grid: 2-col on tablet */
+  .bgg-organ-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Pledge box */
+  .bgg-pledge-box { padding: 24px 18px; }
+  .op-form-wrap { padding: 20px 16px; }
+
+  /* ABO table */
+  .bgg-abo-row { grid-template-columns: 80px 20px 1fr; }
+  .bgg-abo-note { display: none; }
+}
+@media (max-width: 600px) {
+  /* Tabs: horizontal scroll */
+  .bgg-tabs { overflow-x: auto; scrollbar-width: none; flex-wrap: nowrap; }
+  .bgg-tabs::-webkit-scrollbar { display: none; }
+  .bgg-tab  { padding: 12px 14px; font-size: 0.82rem; flex-shrink: 0; }
+
+  /* Blood type picker buttons */
+  .bgg-type-btn { width: 58px; height: 58px; font-size: 1.05rem; border-radius: 12px; }
+
+  /* Compat grid: 4 across (shrunk) */
+  .bgg-compat-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .bgg-compat-card { padding: 8px 3px; gap: 4px; }
+  .bgg-compat-drop { width: 28px; height: 38px; }
+  .bgg-compat-type { font-size: 0.82rem; }
+
+  /* Organ grid: 1-col on mobile */
+  .bgg-organ-grid  { grid-template-columns: 1fr; }
+
+  /* ABO table */
+  .bgg-abo-row     { grid-template-columns: 80px 20px 1fr; }
+  .bgg-abo-note    { display: none; }
+
+  /* Banks */
+  .bgg-banks-grid  { grid-template-columns: 1fr; }
+
+  /* Matrix: small font */
+  .bgg-matrix { font-size: 0.6rem; }
+  .bgg-mcell { height: 28px; }
+
+  /* Pledge box */
+  .bgg-pledge-box { padding: 20px 14px; }
+  .op-form-wrap { padding: 18px 14px; }
+  .op-cert-body { padding: 20px 16px 16px; }
+  .op-cert-name { font-size: 1.4rem; }
+  .op-cert-footer { flex-direction: column; gap: 10px; }
+  .op-cert-sig { text-align: left; }
+
+  /* Interval cards */
+  .bgg-interval-list { gap: 8px; }
+  .bgg-interval-card { min-width: 0; padding: 12px 10px; }
+}

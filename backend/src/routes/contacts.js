@@ -16,14 +16,14 @@ router.get("/", async (req, res) => {
 
 // POST /api/contacts
 router.post("/", async (req, res) => {
-  const { name, phone, relationship } = req.body || {};
+  const { name, phone, relationship, email } = req.body || {};
   if (!name || !phone) {
     return res.status(400).json({ error: "name and phone are required" });
   }
   const result = await query(
-    `INSERT INTO emergency_contacts (user_id, name, phone, relationship)
-     VALUES ($1, $2, $3, $4) RETURNING *`,
-    [req.user.id, name, phone, relationship || null]
+    `INSERT INTO emergency_contacts (user_id, name, phone, relationship, email)
+     VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+    [req.user.id, name, phone, relationship || null, email || null]
   );
   res.status(201).json({ contact: result.rows[0] });
 });

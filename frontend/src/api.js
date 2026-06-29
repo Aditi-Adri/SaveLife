@@ -1,4 +1,4 @@
-// API client for the SaveLife SOS app.
+// API client for the SaveLife donation app.
 // In dev, Vite proxies /api -> backend (see vite.config.js). In production the
 // backend serves this app, so relative /api paths work there too.
 
@@ -26,12 +26,109 @@ async function request(path, { method = "GET", body } = {}) {
   return data;
 }
 
+async function upload(path, formData) {
+  const headers = {};
+  const token = auth.getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`/api${path}`, { method: "POST", headers, body: formData });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Upload failed (${res.status})`);
+  return data;
+}
+
 export const api = {
+  // public (no auth) — for the Explore page
+  publicStats: () => request("/public/stats"),
+  leaderboard: () => request("/public/leaderboard"),
+  publicRequests: (filters = {}) => {
+    const q = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => { if (v !== "" && v !== false && v != null) q.set(k, v); });
+    const qs = q.toString();
+    return request(`/public/requests${qs ? "?" + qs : ""}`);
+  },
+  publicProfile: (id) => request(`/public/profile/${id}`),
+
+  // reveal a request's contact (auth required) — also fires push notification to requester
+  requestContact: (id) => request(`/requests/${id}/contact`),
+
+  // blood / plasma requests
+  createRequest: (payload) => request("/requests", { method: "POST", body: payload }),
+  myRequests: () => request("/requests/mine"),
+  cancelRequest: (id) => request(`/requests/${id}`, { method: "DELETE" }),
+
+  // hospitals & ambulances
+  registerHospital: (payload) => request("/hospitals", { method: "POST", body: payload }),
+  publicHospitals: () => request("/public/hospitals"),
+  publicAmbulances: () => request("/public/ambulances"),
+  bookHospital: (id, payload) => request(`/hospitals/${id}/book`, { method: "POST", body: payload }),
+  myBookings: () => request("/hospitals/bookings"),
+  bookingDocuments: (bookingId) => request(`/hospitals/bookings/${bookingId}/documents`),
+  uploadBookingDocs: (bookingId, files, docLabel) => {
+    const fd = new FormData();
+    files.forEach(f => fd.append("docs", f));
+    fd.append("doc_label", docLabel || "medical");
+    const headers = {};
+    const token = auth.getToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return fetch(`/api/hospitals/bookings/${bookingId}/documents`, { method: "POST", headers, body: fd })
+      .then(r => r.json());
+  },
+
+  // doctors & appointments
+  publicDoctors: (filters = {}) => {
+    const q = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => { if (v) q.set(k, v); });
+    const qs = q.toString();
+    return request(`/doctors${qs ? "?" + qs : ""}`);
+  },
+  bookAppointment: (payload) => request("/doctors/appointments", { method: "POST", body: payload }),
+  myAppointments: () => request("/doctors/appointments/mine"),
+
+  // medicines & pharmacy
+  publicMedicines: (filters = {}) => {
+    const q = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => { if (v && v !== "All") q.set(k, v); });
+    const qs = q.toString();
+    return request(`/medicines${qs ? "?" + qs : ""}`);
+  },
+  placeMedicineOrder: (payload) => request("/medicines/orders", { method: "POST", body: payload }),
+  myMedicineOrders: () => request("/medicines/orders/mine"),
+
   // auth
   register: (payload) => request("/auth/register", { method: "POST", body: payload }),
   login: (payload) => request("/auth/login", { method: "POST", body: payload }),
   me: () => request("/auth/me"),
   updateProfile: (payload) => request("/auth/profile", { method: "PUT", body: payload }),
+  organPledge: (organs) => request("/auth/organ-pledge", { method: "POST", body: { organs } }),
+
+  // medical tests
+  bookTest: (payload) => request("/tests/book", { method: "POST", body: payload }),
+  myTestBookings: () => request("/tests/my-bookings"),
+  uploadTestReport: (bookingId, file) => {
+    const fd = new FormData();
+    fd.append("report", file);
+    const headers = {};
+    const token = auth.getToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return fetch(`/api/tests/bookings/${bookingId}/report`, { method: "POST", headers, body: fd })
+      .then(r => r.json().then(d => { if (!r.ok) throw new Error(d.error || "Upload failed"); return d; }));
+  },
+  testEmail: () => request("/auth/test-email", { method: "POST" }),
+
+  // uploads
+  uploadAvatar: (file) => {
+    const fd = new FormData();
+    fd.append("avatar", file);
+    return upload("/uploads/avatar", fd);
+  },
+  uploadDocument: (file, docType) => {
+    const fd = new FormData();
+    fd.append("document", file);
+    fd.append("doc_type", docType);
+    return upload("/uploads/document", fd);
+  },
+  myDocuments: () => request("/uploads/documents"),
+  deleteDocument: (id) => request(`/uploads/documents/${id}`, { method: "DELETE" }),
 
   // emergency contacts
   listContacts: () => request("/contacts"),

@@ -1,4 +1,40 @@
-/* Minimal global reset — component styles live in App.css */
+/* Global theme tokens. Components reference these via var(--x).
+   Dark is the default; [data-theme="light"] on <html> switches to light. */
+:root {
+  --bg: #0f172a;
+  --bg-alt: #111c33;
+  --card: #1e293b;
+  --accent: #ef4444;
+  --accent-dark: #b91c1c;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --line: #28344b;
+  --input: #0b1220;
+}
+
+:root[data-theme="light"] {
+  --bg: #f7f9fc;
+  --bg-alt: #eef2f8;
+  --card: #ffffff;
+  --accent: #ef4444;
+  --accent-dark: #b91c1c;
+  --text: #0f172a;
+  --muted: #5b6b82;
+  --line: #dbe3ee;
+  --input: #f1f5f9;
+}
+
 html, body, #root {
   height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.25s ease, color 0.25s ease;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
 }

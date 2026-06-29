@@ -1,18 +1,56 @@
 import { useEffect, useState } from "react";
-import { api, auth, getLocation } from "./api";
+import { api, auth } from "./api";
+import Home from "./Home";
+import Explore from "./Explore";
+import OrganInfo from "./OrganInfo";
+import Hospitals from "./Hospitals";
+import Ambulance from "./Ambulance";
+import Profile from "./Profile";
+import Doctors from "./Doctors";
+import Medicines from "./Medicines";
+import SOSWidget from "./SOS";
+import Leaderboard from "./Leaderboard";
+import BloodGuide from "./BloodGuide";
+import HealthTips from "./HealthTips";
+import MedicalTests from "./MedicalTests";
 import "./App.css";
 
-const ALERT_TYPES = [
-  { value: "medical", label: "🚑 Medical" },
-  { value: "accident", label: "💥 Accident" },
-  { value: "fire", label: "🔥 Fire" },
-  { value: "crime", label: "🚓 Crime" },
-  { value: "other", label: "❗ Other" },
-];
+const INTENT_MESSAGE = {
+  donate: "Log in or register to donate blood.",
+  request: "Log in or register to request blood.",
+  respond: "Log in or register to respond to this request.",
+};
+
+const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [emailNotifications, setEmailNotifications] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [view, _setView] = useState(() => window.location.hash.slice(1) || "home");
+  const [authIntent, setAuthIntent] = useState(null);
+  const [returnView, setReturnView] = useState(null);
+  const [bgTab, setBgTab] = useState("blood");
+
+  // Wrap setView so every navigation pushes a browser history entry.
+  function setView(v) {
+    _setView(v);
+    const hash = v === "home" ? "" : v;
+    if (window.location.hash.slice(1) !== hash) {
+      window.history.pushState({ view: v }, "", hash ? `#${hash}` : window.location.pathname);
+    }
+  }
+
+  // Browser back / forward button support.
+  useEffect(() => {
+    const onPop = (e) => {
+      _setView(e.state?.view ?? window.location.hash.slice(1) ?? "home");
+    };
+    window.addEventListener("popstate", onPop);
+    // Stamp the initial state so the first back-press works correctly.
+    window.history.replaceState({ view: window.location.hash.slice(1) || "home" }, "");
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
 
   useEffect(() => {
     if (!auth.getToken()) {
@@ -21,7 +59,7 @@ export default function App() {
     }
     api
       .me()
-      .then((d) => setUser(d.user))
+      .then((d) => { setUser(d.user); setEmailNotifications(d.emailNotifications ?? false); })
       .catch(() => auth.clear())
       .finally(() => setLoading(false));
   }, []);
@@ -29,48 +67,159 @@ export default function App() {
   function logout() {
     auth.clear();
     setUser(null);
+    setView("home");
+    setAuthIntent(null);
+  }
+
+  function goAuth(intent) {
+    setAuthIntent(intent || null);
+    // Remember where the user came from so we can send them back after login.
+    const from = view === "auth" ? null : view;
+    setReturnView(from && from !== "home" ? from : "explore");
+    setView("auth");
+  }
+
+  function onAuthed(u) {
+    setUser(u);
+    setAuthIntent(null);
+    setView(returnView || "explore");
+    setReturnView(null);
   }
 
   if (loading) return <div className="center">Loading…</div>;
 
+  // ---- Logged-in: Explore is home; Profile and Organ are reachable from it ----
+  if (user) {
+    let mainView;
+    if (view === "organ")
+      mainView = <OrganInfo onBack={() => setView("explore")} onAuth={() => setView("profile")} />;
+    else if (view === "hospitals")
+      mainView = <Hospitals user={user} onBack={() => setView("explore")} onAuth={goAuth} />;
+    else if (view === "ambulance")
+      mainView = <Ambulance onBack={() => setView("explore")} />;
+    else if (view === "doctors")
+      mainView = <Doctors user={user} onBack={() => setView("explore")} onAuth={goAuth} />;
+    else if (view === "medicines")
+      mainView = <Medicines user={user} onBack={() => setView("explore")} onAuth={goAuth} />;
+    else if (view === "profile")
+      mainView = (
+        <Profile
+          user={user}
+          emailNotifications={emailNotifications}
+          onBack={() => setView("explore")}
+          onLogout={logout}
+          onUserUpdate={(u) => setUser(u)}
+        />
+      );
+    else if (view === "leaderboard")
+      mainView = <Leaderboard user={user} onBack={() => setView("explore")} />;
+    else if (view === "bloodguide")
+      mainView = <BloodGuide user={user} onBack={() => setView("explore")} onUserUpdate={(u) => setUser(u)} onAuth={goAuth} initialTab={bgTab} />;
+    else if (view === "healthtips")
+      mainView = <HealthTips user={user} onBack={() => setView("explore")} />;
+    else if (view === "tests")
+      mainView = <MedicalTests user={user} onBack={() => setView("explore")} onAuth={goAuth} />;
+    else
+      mainView = (
+        <Explore
+          user={user}
+          onHome={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          onOrgan={() => { setBgTab("organ"); setView("bloodguide"); }}
+          onProfile={() => setView("profile")}
+          onLogout={logout}
+          onHospitals={() => setView("hospitals")}
+          onAmbulance={() => setView("ambulance")}
+          onDoctors={() => setView("doctors")}
+          onMedicines={() => setView("medicines")}
+          onLeaderboard={() => setView("leaderboard")}
+          onBloodGuide={() => { setBgTab("blood"); setView("bloodguide"); }}
+          onHealthTips={() => setView("healthtips")}
+          onTests={() => setView("tests")}
+        />
+      );
+    return (
+      <>
+        {mainView}
+        <SOSWidget user={user} />
+      </>
+    );
+  }
+
+  // ---- Logged-out: Home -> Explore -> Auth (auth only on Donate/Request) ----
+  if (view === "home") return <Home onGetStarted={() => setView("explore")} onLogin={goAuth} />;
+  if (view === "leaderboard")
+    return <Leaderboard user={null} onBack={() => setView("explore")} />;
+  if (view === "bloodguide")
+    return <BloodGuide user={null} onBack={() => setView("explore")} onAuth={goAuth} initialTab={bgTab} />;
+  if (view === "healthtips")
+    return <HealthTips user={null} onBack={() => setView("explore")} />;
+  if (view === "tests")
+    return <MedicalTests user={null} onBack={() => setView("explore")} onAuth={goAuth} />;
+  if (view === "explore")
+    return (
+      <Explore
+        onHome={() => setView("home")}
+        onAuth={goAuth}
+        onOrgan={() => { setBgTab("organ"); setView("bloodguide"); }}
+        onHospitals={() => setView("hospitals")}
+        onAmbulance={() => setView("ambulance")}
+        onDoctors={() => setView("doctors")}
+        onMedicines={() => setView("medicines")}
+        onLeaderboard={() => setView("leaderboard")}
+        onBloodGuide={() => { setBgTab("blood"); setView("bloodguide"); }}
+        onHealthTips={() => setView("healthtips")}
+        onTests={() => setView("tests")}
+      />
+    );
+  if (view === "organ")
+    return <OrganInfo onBack={() => setView("explore")} onAuth={goAuth} />;
+  if (view === "hospitals")
+    return <Hospitals user={null} onBack={() => setView("explore")} onAuth={goAuth} />;
+  if (view === "ambulance")
+    return <Ambulance onBack={() => setView("explore")} />;
+  if (view === "doctors")
+    return <Doctors user={null} onBack={() => setView("explore")} onAuth={goAuth} />;
+  if (view === "medicines")
+    return <Medicines user={null} onBack={() => setView("explore")} onAuth={goAuth} />;
   return (
     <div className="app">
       <header className="header">
         <h1>🩺 SaveLife</h1>
-        {user && (
-          <div className="userbar">
-            <span>
-              {user.name} <em className="role">{user.role}</em>
-            </span>
-            <button className="ghost" onClick={logout}>
-              Log out
-            </button>
-          </div>
-        )}
+        <button className="ghost" onClick={() => setView("explore")}>← Explore</button>
       </header>
-
-      {!user && <AuthForm onAuthed={setUser} />}
-      {user?.role === "responder" && <ResponderDashboard />}
-      {user?.role === "user" && <UserDashboard user={user} onUser={setUser} />}
+      {authIntent && INTENT_MESSAGE[authIntent] && (
+        <p className="intent-banner">{INTENT_MESSAGE[authIntent]}</p>
+      )}
+      <AuthFlow onAuthed={onAuthed} />
     </div>
   );
 }
 
-/* ------------------------------ Auth ------------------------------ */
+/* ----------------------------- Auth flow ----------------------------- */
 
-function AuthForm({ onAuthed }) {
-  const [mode, setMode] = useState("login");
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    phone: "",
-    blood_type: "",
-    role: "user",
-  });
+function AuthFlow({ onAuthed }) {
+  const [mode, setMode] = useState("login"); // "login" | "register"
+
+  if (mode === "register") {
+    return (
+      <RegisterForm
+        switchToLogin={() => setMode("login")}
+        onRegistered={({ user, token }) => {
+          // Auto-login: store the token and enter the app immediately.
+          auth.setToken(token);
+          onAuthed(user);
+        }}
+      />
+    );
+  }
+
+  return <LoginForm onAuthed={onAuthed} switchToRegister={() => setMode("register")} />;
+}
+
+function LoginForm({ onAuthed, switchToRegister }) {
+  const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
   async function submit(e) {
@@ -78,8 +227,11 @@ function AuthForm({ onAuthed }) {
     setError("");
     setBusy(true);
     try {
-      const fn = mode === "login" ? api.login : api.register;
-      const { token, user } = await fn(form);
+      // Backend matches on email; send it as the identifier.
+      const { token, user } = await api.login({
+        identifier: form.email,
+        password: form.password,
+      });
       auth.setToken(token);
       onAuthed(user);
     } catch (err) {
@@ -91,30 +243,15 @@ function AuthForm({ onAuthed }) {
 
   return (
     <form className="card" onSubmit={submit}>
-      <h2>{mode === "login" ? "Welcome back" : "Create an account"}</h2>
-
-      {mode === "register" && (
-        <>
-          <input placeholder="Full name" value={form.name} onChange={set("name")} required />
-          <input placeholder="Phone number" value={form.phone} onChange={set("phone")} />
-          <div className="row">
-            <select value={form.blood_type} onChange={set("blood_type")}>
-              <option value="">Blood type (optional)</option>
-              {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((b) => (
-                <option key={b} value={b}>
-                  {b}
-                </option>
-              ))}
-            </select>
-            <select value={form.role} onChange={set("role")}>
-              <option value="user">I need help (user)</option>
-              <option value="responder">I'm a responder</option>
-            </select>
-          </div>
-        </>
-      )}
-
-      <input type="email" placeholder="Email" value={form.email} onChange={set("email")} required />
+      <h2>Donor login</h2>
+      <p className="hint">Log in with the email and password you chose when you signed up.</p>
+      <input
+        type="email"
+        placeholder="Email"
+        value={form.email}
+        onChange={set("email")}
+        required
+      />
       <input
         type="password"
         placeholder="Password"
@@ -122,330 +259,192 @@ function AuthForm({ onAuthed }) {
         onChange={set("password")}
         required
       />
-
       {error && <p className="error">{error}</p>}
       <button disabled={busy} type="submit">
-        {busy ? "…" : mode === "login" ? "Log in" : "Sign up"}
+        {busy ? "…" : "Log in"}
       </button>
-
       <p className="switch">
-        {mode === "login" ? "No account?" : "Already have an account?"}{" "}
-        <a
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            setError("");
-            setMode(mode === "login" ? "register" : "login");
-          }}
-        >
-          {mode === "login" ? "Sign up" : "Log in"}
+        New donor?{" "}
+        <a href="#" onClick={(e) => { e.preventDefault(); switchToRegister(); }}>
+          Create an account
         </a>
       </p>
     </form>
   );
 }
 
-/* -------------------------- User dashboard -------------------------- */
-
-function UserDashboard({ user, onUser }) {
-  const [type, setType] = useState("medical");
-  const [message, setMessage] = useState("");
-  const [alerts, setAlerts] = useState([]);
-  const [status, setStatus] = useState("");
+function RegisterForm({ onRegistered, switchToLogin }) {
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirm: "",
+    phone: "",
+    age: "",
+    gender: "",
+    weight: "",
+    blood_type: "",
+    donation_count: "",
+    last_donation: "",
+    donation_history: "",
+    drug_addicted: "no",
+    medical_conditions: "",
+  });
+  const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
-  async function loadAlerts() {
-    const { alerts } = await api.myAlerts();
-    setAlerts(alerts);
-  }
-
-  useEffect(() => {
-    loadAlerts();
-  }, []);
-
-  async function sendSOS() {
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    if (!/^\d{11}$/.test(form.phone)) {
+      setError("Phone must be an 11-digit number (e.g. 01712345678).");
+      return;
+    }
+    if (form.password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    if (form.password !== form.confirm) {
+      setError("Passwords do not match.");
+      return;
+    }
     setBusy(true);
-    setStatus("Getting your location…");
     try {
-      const loc = await getLocation();
-      setStatus("Sending alert…");
-      await api.raiseAlert({ type, message, ...loc });
-      setStatus("🚨 Alert sent! Responders have been notified.");
-      setMessage("");
-      loadAlerts();
+      const { confirm, ...rest } = form;
+      const payload = { ...rest, drug_addicted: form.drug_addicted === "yes" };
+      const result = await api.register(payload);
+      onRegistered(result);
     } catch (err) {
-      setStatus("Failed: " + err.message);
+      setError(err.message);
     } finally {
       setBusy(false);
     }
   }
 
-  async function cancel(id) {
-    await api.cancelAlert(id);
-    loadAlerts();
-  }
-
-  const activeAlert = alerts.find((a) => a.status === "active" || a.status === "responded");
-
   return (
-    <>
-      <section className="card sos-card">
-        <h2>Emergency SOS</h2>
-        <div className="row">
-          {ALERT_TYPES.map((t) => (
-            <button
-              key={t.value}
-              type="button"
-              className={`chip ${type === t.value ? "chip-active" : ""}`}
-              onClick={() => setType(t.value)}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-        <textarea
-          placeholder="Describe the emergency (optional)"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          rows={2}
-        />
-        <button className="sos-button" disabled={busy} onClick={sendSOS}>
-          {busy ? "…" : "🚨 SEND SOS"}
-        </button>
-        {status && <p className="hint">{status}</p>}
-      </section>
-
-      {activeAlert && (
-        <section className="card">
-          <h2>Active alert</h2>
-          <AlertStatus alert={activeAlert} />
-          <button className="ghost" onClick={() => cancel(activeAlert.id)}>
-            Cancel alert
-          </button>
-        </section>
-      )}
-
-      <ContactsManager />
-      <ProfileCard user={user} onUser={onUser} />
-
-      <section className="card">
-        <h2>History</h2>
-        <ul className="items">
-          {alerts.length === 0 && <li className="empty">No alerts yet.</li>}
-          {alerts.map((a) => (
-            <li key={a.id}>
-              <div>
-                <strong>{labelFor(a.type)}</strong> · {a.status}
-                <p>{new Date(a.created_at).toLocaleString()}</p>
-              </div>
-              <StatusBadge status={a.status} />
-            </li>
-          ))}
-        </ul>
-      </section>
-    </>
-  );
-}
-
-function AlertStatus({ alert }) {
-  return (
-    <div>
-      <p>
-        <strong>{labelFor(alert.type)}</strong> — <StatusBadge status={alert.status} />
+    <form className="card" onSubmit={submit}>
+      <h2>Become a donor</h2>
+      <p className="hint">
+        Fill in your details and choose a password — you'll log in with your
+        email and password. We'll also give you a Donor ID for matching.
       </p>
-      {alert.message && <p className="hint">“{alert.message}”</p>}
-      {alert.responder_name ? (
-        <p className="hint">
-          Responder: {alert.responder_name} ({alert.responder_phone || "no phone"})
-        </p>
-      ) : (
-        <p className="hint">Waiting for a responder to accept…</p>
-      )}
-      <MapLink lat={alert.latitude} lng={alert.longitude} />
-    </div>
-  );
-}
 
-/* ----------------------- Responder dashboard ----------------------- */
+      <label className="field-label">Full name *</label>
+      <input placeholder="Your full name" value={form.name} onChange={set("name")} required />
 
-function ResponderDashboard() {
-  const [alerts, setAlerts] = useState([]);
-  const [error, setError] = useState("");
+      <div className="row">
+        <div className="col">
+          <label className="field-label">Email *</label>
+          <input type="email" placeholder="you@example.com" value={form.email} onChange={set("email")} required />
+        </div>
+        <div className="col">
+          <label className="field-label">Phone (11 digits) *</label>
+          <input
+            placeholder="01712345678"
+            value={form.phone}
+            onChange={set("phone")}
+            inputMode="numeric"
+            maxLength={11}
+            required
+          />
+        </div>
+      </div>
 
-  async function load() {
-    try {
-      const { alerts } = await api.activeAlerts();
-      setAlerts(alerts);
-    } catch (err) {
-      setError(err.message);
-    }
-  }
+      <div className="row">
+        <div className="col">
+          <label className="field-label">Password * (min 6 chars)</label>
+          <input type="password" placeholder="Choose a password" value={form.password} onChange={set("password")} required />
+        </div>
+        <div className="col">
+          <label className="field-label">Confirm password *</label>
+          <input type="password" placeholder="Re-enter password" value={form.confirm} onChange={set("confirm")} required />
+        </div>
+      </div>
 
-  useEffect(() => {
-    load();
-    const id = setInterval(load, 10000); // refresh every 10s
-    return () => clearInterval(id);
-  }, []);
+      <div className="row">
+        <div className="col">
+          <label className="field-label">Age</label>
+          <input type="number" min="0" placeholder="Age" value={form.age} onChange={set("age")} />
+        </div>
+        <div className="col">
+          <label className="field-label">Gender</label>
+          <select value={form.gender} onChange={set("gender")}>
+            <option value="">Select</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div className="col">
+          <label className="field-label">Weight (kg)</label>
+          <input type="number" min="0" step="0.1" placeholder="Weight" value={form.weight} onChange={set("weight")} />
+        </div>
+      </div>
 
-  async function respond(id) {
-    await api.respondAlert(id);
-    load();
-  }
-  async function resolve(id) {
-    await api.resolveAlert(id);
-    load();
-  }
+      <div className="row">
+        <div className="col">
+          <label className="field-label">Blood group</label>
+          <select value={form.blood_type} onChange={set("blood_type")}>
+            <option value="">Select</option>
+            {BLOOD_TYPES.map((b) => <option key={b} value={b}>{b}</option>)}
+          </select>
+        </div>
+        <div className="col">
+          <label className="field-label">Times donated before</label>
+          <input type="number" min="0" placeholder="0" value={form.donation_count} onChange={set("donation_count")} />
+        </div>
+        <div className="col">
+          <label className="field-label">Last donation date</label>
+          <input type="date" value={form.last_donation} onChange={set("last_donation")} />
+        </div>
+      </div>
 
-  return (
-    <section className="card">
-      <h2>Active emergencies</h2>
-      <p className="hint">Auto-refreshes every 10 seconds.</p>
+      <label className="field-label">Donation history (optional)</label>
+      <textarea
+        rows={2}
+        placeholder="e.g. Donated blood twice in 2024 at Dhaka Medical"
+        value={form.donation_history}
+        onChange={set("donation_history")}
+      />
+
+      <label className="field-label">Are you drug addicted?</label>
+      <div className="toggle">
+        <button
+          type="button"
+          className={form.drug_addicted === "no" ? "on" : ""}
+          onClick={() => setForm({ ...form, drug_addicted: "no" })}
+        >
+          No
+        </button>
+        <button
+          type="button"
+          className={form.drug_addicted === "yes" ? "on danger" : ""}
+          onClick={() => setForm({ ...form, drug_addicted: "yes" })}
+        >
+          Yes
+        </button>
+      </div>
+
+      <label className="field-label">Any sickness / medical conditions?</label>
+      <textarea
+        rows={2}
+        placeholder="e.g. Diabetes, hepatitis, none"
+        value={form.medical_conditions}
+        onChange={set("medical_conditions")}
+      />
+
       {error && <p className="error">{error}</p>}
-      <ul className="items">
-        {alerts.length === 0 && <li className="empty">No active emergencies right now.</li>}
-        {alerts.map((a) => (
-          <li key={a.id} className="alert-row">
-            <div>
-              <strong>{labelFor(a.type)}</strong> <StatusBadge status={a.status} />
-              <p>
-                {a.requester_name} · {a.requester_phone || "no phone"}
-                {a.requester_blood_type ? ` · 🩸 ${a.requester_blood_type}` : ""}
-              </p>
-              {a.message && <p className="hint">“{a.message}”</p>}
-              <p className="hint">{new Date(a.created_at).toLocaleString()}</p>
-              <MapLink lat={a.latitude} lng={a.longitude} />
-            </div>
-            <div className="actions">
-              {a.status === "active" && <button onClick={() => respond(a.id)}>Respond</button>}
-              <button className="ghost" onClick={() => resolve(a.id)}>
-                Resolve
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </section>
+      <button disabled={busy} type="submit">
+        {busy ? "Creating account…" : "Create my donor account"}
+      </button>
+      <p className="switch">
+        Already registered?{" "}
+        <a href="#" onClick={(e) => { e.preventDefault(); switchToLogin(); }}>
+          Log in
+        </a>
+      </p>
+    </form>
   );
 }
 
-/* --------------------------- Shared bits --------------------------- */
-
-function ContactsManager() {
-  const [contacts, setContacts] = useState([]);
-  const [form, setForm] = useState({ name: "", phone: "", relationship: "" });
-
-  async function load() {
-    const { contacts } = await api.listContacts();
-    setContacts(contacts);
-  }
-  useEffect(() => {
-    load();
-  }, []);
-
-  async function add(e) {
-    e.preventDefault();
-    if (!form.name || !form.phone) return;
-    await api.addContact(form);
-    setForm({ name: "", phone: "", relationship: "" });
-    load();
-  }
-  async function remove(id) {
-    await api.deleteContact(id);
-    load();
-  }
-
-  return (
-    <section className="card">
-      <h2>Emergency contacts</h2>
-      <form className="row" onSubmit={add}>
-        <input
-          placeholder="Name"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-        />
-        <input
-          placeholder="Phone"
-          value={form.phone}
-          onChange={(e) => setForm({ ...form, phone: e.target.value })}
-        />
-        <input
-          placeholder="Relationship"
-          value={form.relationship}
-          onChange={(e) => setForm({ ...form, relationship: e.target.value })}
-        />
-        <button type="submit">Add</button>
-      </form>
-      <ul className="items">
-        {contacts.length === 0 && <li className="empty">No contacts yet.</li>}
-        {contacts.map((c) => (
-          <li key={c.id}>
-            <div>
-              <strong>{c.name}</strong>
-              <p>
-                {c.phone}
-                {c.relationship ? ` · ${c.relationship}` : ""}
-              </p>
-            </div>
-            <button className="ghost" onClick={() => remove(c.id)}>
-              ✕
-            </button>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function ProfileCard({ user, onUser }) {
-  const [phone, setPhone] = useState(user.phone || "");
-  const [bloodType, setBloodType] = useState(user.blood_type || "");
-  const [saved, setSaved] = useState(false);
-
-  async function save(e) {
-    e.preventDefault();
-    const { user: updated } = await api.updateProfile({ phone, blood_type: bloodType });
-    onUser((prev) => ({ ...prev, ...updated }));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1500);
-  }
-
-  return (
-    <section className="card">
-      <h2>My profile</h2>
-      <form className="row" onSubmit={save}>
-        <input placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
-        <select value={bloodType} onChange={(e) => setBloodType(e.target.value)}>
-          <option value="">Blood type</option>
-          {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((b) => (
-            <option key={b} value={b}>
-              {b}
-            </option>
-          ))}
-        </select>
-        <button type="submit">{saved ? "Saved ✓" : "Save"}</button>
-      </form>
-    </section>
-  );
-}
-
-function MapLink({ lat, lng }) {
-  if (lat == null || lng == null) return <p className="hint">📍 Location unavailable</p>;
-  return (
-    <a
-      className="map-link"
-      href={`https://www.google.com/maps?q=${lat},${lng}`}
-      target="_blank"
-      rel="noreferrer"
-    >
-      📍 View location on map
-    </a>
-  );
-}
-
-function StatusBadge({ status }) {
-  return <span className={`badge badge-${status}`}>{status}</span>;
-}
-
-function labelFor(type) {
-  return ALERT_TYPES.find((t) => t.value === type)?.label || type;
-}

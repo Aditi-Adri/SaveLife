@@ -1,0 +1,25 @@
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 6px 13px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text);
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+  line-height: 1;
+}
+.theme-toggle:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.tt-icon { font-size: 0.95rem; line-height: 1; }
+.tt-label { font-size: 0.8rem; }
+
+@media (max-width: 640px) { .tt-label { display: none; } }

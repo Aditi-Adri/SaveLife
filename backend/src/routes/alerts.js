@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { query } from "../db/pool.js";
 import { requireAuth, requireResponder } from "../middleware/auth.js";
+import { sendSOSNotificationEmail, sendSOSContactEmail } from "../utils/email.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -17,7 +18,48 @@ router.post("/", async (req, res) => {
      VALUES ($1, $2, $3, $4, $5) RETURNING *`,
     [req.user.id, safeType, latitude ?? null, longitude ?? null, message || null]
   );
-  res.status(201).json({ alert: result.rows[0] });
+  const alert = result.rows[0];
+
+  // Fire-and-forget: email the user confirming their SOS was logged
+  const mapsUrl = latitude && longitude
+    ? `https://www.google.com/maps?q=${latitude},${longitude}`
+    : null;
+  query("SELECT name, email, phone FROM users WHERE id = $1", [req.user.id])
+    .then(async ({ rows: uRows }) => {
+      const u = uRows[0];
+      if (!u) return;
+      const { rows: contacts } = await query(
+        "SELECT name, phone, email, relationship FROM emergency_contacts WHERE user_id = $1",
+        [req.user.id]
+      );
+
+      // 1. Email the user themselves — confirmation + their contacts listed
+      await sendSOSNotificationEmail({
+        toEmail: u.email,
+        toName: u.name,
+        location: { latitude, longitude },
+        mapsUrl,
+        contacts,
+      }).catch(() => {});
+
+      // 2. Email each contact that has an email address
+      for (const c of contacts) {
+        if (c.email) {
+          await sendSOSContactEmail({
+            toEmail: c.email,
+            toName: c.name,
+            fromName: u.name,
+            fromPhone: u.phone || "—",
+            fromEmail: u.email,
+            location: { latitude, longitude },
+            mapsUrl,
+          }).catch(() => {});
+        }
+      }
+    })
+    .catch(e => console.warn("[alerts] SOS email failed:", e.message));
+
+  res.status(201).json({ alert });
 });
 
 // GET /api/alerts/mine — the current user's own alerts
