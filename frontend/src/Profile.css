@@ -455,6 +455,119 @@
 .ec-tip span:first-child { font-size: 1.2rem; flex-shrink: 0; }
 .ec-tip strong { color: var(--text); }
 
+/* ── Achievements tab ── */
+.ach-stats-row {
+  display: flex; gap: 1px; background: var(--line);
+  border: 1px solid var(--line); border-radius: 14px;
+  overflow: hidden; margin-bottom: 28px;
+}
+.ach-stat {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; gap: 3px; padding: 18px 8px;
+  background: var(--card); text-align: center;
+}
+.ach-stat strong { font-size: 1.25rem; font-weight: 800; color: var(--accent); }
+.ach-stat span { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+.ach-section-title {
+  font-size: 0.8rem; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  margin-bottom: 14px;
+}
+
+.badge-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 12px; margin-bottom: 28px;
+}
+.badge-card {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  padding: 16px 10px; border-radius: 14px; text-align: center;
+  border: 1px solid var(--line); background: var(--card);
+  position: relative; cursor: default; transition: transform 0.15s;
+}
+.badge-card.badge-earned {
+  border-color: rgba(251,191,36,0.45);
+  background: rgba(251,191,36,0.07);
+}
+.badge-card.badge-earned:hover { transform: translateY(-2px); }
+.badge-card.badge-locked { opacity: 0.38; }
+.badge-emoji { font-size: 1.8rem; line-height: 1; }
+.badge-card.badge-locked .badge-emoji { filter: grayscale(1); }
+.badge-name { font-size: 0.7rem; font-weight: 700; color: var(--text); }
+.badge-desc { font-size: 0.62rem; color: var(--muted); line-height: 1.3; }
+.badge-lock { position: absolute; top: 6px; right: 8px; font-size: 0.68rem; }
+
+.ach-progress-box {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 14px; padding: 18px; margin-bottom: 28px;
+}
+.ach-progress-label {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.88rem; color: var(--muted); margin-bottom: 10px;
+}
+.ach-progress-label strong { color: var(--text); }
+.ach-progress-bar {
+  height: 8px; background: var(--line);
+  border-radius: 999px; overflow: hidden;
+}
+.ach-progress-fill {
+  height: 100%; background: var(--accent);
+  border-radius: 999px; transition: width 0.6s ease;
+  min-width: 4px;
+}
+.ach-progress-hint { margin: 8px 0 0; color: var(--muted); font-size: 0.8rem; }
+
+/* Certificate */
+.cert-paper {
+  border: 3px solid #dc2626; border-radius: 16px; overflow: hidden;
+  max-width: 600px; margin: 0 auto;
+}
+.cert-header {
+  background: linear-gradient(135deg, #7f1d1d, #dc2626);
+  padding: 28px 32px 20px; text-align: center; color: #fff;
+}
+.cert-logo { font-size: 1.8rem; font-weight: 900; letter-spacing: 0.08em; }
+.cert-subtitle { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
+.cert-divider { height: 4px; background: linear-gradient(90deg, #dc2626, #fbbf24, #dc2626); }
+.cert-body {
+  padding: 28px 32px 24px; text-align: center;
+  background: #fff; color: #1e293b;
+}
+.cert-label {
+  font-size: 1rem; font-weight: 700; letter-spacing: 0.1em;
+  color: #7f1d1d; text-transform: uppercase; margin-bottom: 16px;
+}
+.cert-intro { font-size: 0.88rem; color: #64748b; margin-bottom: 10px; font-style: italic; }
+.cert-name {
+  font-size: 1.7rem; font-weight: 900; color: #1e293b;
+  letter-spacing: 0.05em; margin-bottom: 16px;
+  border-bottom: 2px solid #dc2626; padding-bottom: 12px;
+}
+.cert-desc { font-size: 0.9rem; color: #374151; line-height: 1.7; margin-bottom: 14px; }
+.cert-blood {
+  display: inline-block; background: #fee2e2; color: #dc2626;
+  border: 1px solid #fca5a5; padding: 4px 16px;
+  border-radius: 999px; font-size: 0.88rem; font-weight: 700; margin-bottom: 16px;
+}
+.cert-badges { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 16px; }
+.cert-badge-pill {
+  background: #fff7ed; border: 1px solid #fed7aa;
+  color: #9a3412; padding: 3px 12px; border-radius: 999px; font-size: 0.78rem;
+}
+.cert-quote { font-size: 0.92rem; color: #64748b; font-style: italic; margin-bottom: 16px; }
+.cert-footer {
+  display: flex; justify-content: space-between;
+  border-top: 1px solid #e2e8f0; padding-top: 12px;
+  font-size: 0.76rem; color: #94a3b8;
+}
+
+.ach-empty {
+  text-align: center; padding: 40px 24px;
+  border: 2px dashed var(--line); border-radius: 16px; margin-top: 8px;
+}
+.ach-empty h3 { margin: 12px 0 8px; font-size: 1.1rem; }
+.ach-empty p { color: var(--muted); font-size: 0.9rem; }
+
 /* ── Responsive ── */
 @media (max-width: 600px) {
   .pf-hero { flex-direction: column; align-items: flex-start; gap: 18px; }
@@ -464,4 +577,10 @@
   .info-label { width: 110px; }
   .pf-nav { padding: 12px 16px; }
   .pf-section { padding: 20px 16px 40px; }
+  .badge-grid { grid-template-columns: repeat(2, 1fr); }
+  .ach-stats-row { flex-wrap: wrap; }
+  .ach-stat { min-width: 50%; }
+  .cert-body { padding: 20px 18px 18px; }
+  .cert-name { font-size: 1.3rem; }
+  .cert-footer { flex-direction: column; gap: 6px; text-align: center; }
 }

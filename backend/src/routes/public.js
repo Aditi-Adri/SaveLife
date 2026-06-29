@@ -99,6 +99,23 @@ router.get("/hospitals", async (req, res) => {
   }
 });
 
+// GET /api/public/leaderboard — top 50 donors ranked by donation count
+router.get("/leaderboard", async (req, res) => {
+  try {
+    const { rows } = await query(
+      `SELECT id, name, blood_type, donation_count, location_text, avatar_url, created_at, last_donation
+         FROM users
+        WHERE donation_count > 0
+        ORDER BY donation_count DESC, created_at ASC
+        LIMIT 50`
+    );
+    res.json({ donors: rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to load leaderboard" });
+  }
+});
+
 // GET /api/public/ambulances
 router.get("/ambulances", async (req, res) => {
   try {

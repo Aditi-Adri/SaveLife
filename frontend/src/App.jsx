@@ -9,6 +9,7 @@ import Profile from "./Profile";
 import Doctors from "./Doctors";
 import Medicines from "./Medicines";
 import SOSWidget from "./SOS";
+import Leaderboard from "./Leaderboard";
 import "./App.css";
 
 const INTENT_MESSAGE = {
@@ -82,6 +83,8 @@ export default function App() {
           onUserUpdate={(u) => setUser(u)}
         />
       );
+    else if (view === "leaderboard")
+      mainView = <Leaderboard user={user} onBack={() => setView("explore")} />;
     else
       mainView = (
         <Explore
@@ -94,6 +97,7 @@ export default function App() {
           onAmbulance={() => setView("ambulance")}
           onDoctors={() => setView("doctors")}
           onMedicines={() => setView("medicines")}
+          onLeaderboard={() => setView("leaderboard")}
         />
       );
     return (
@@ -106,6 +110,8 @@ export default function App() {
 
   // ---- Logged-out: Home -> Explore -> Auth (auth only on Donate/Request) ----
   if (view === "home") return <Home onGetStarted={() => setView("explore")} />;
+  if (view === "leaderboard")
+    return <Leaderboard user={null} onBack={() => setView("explore")} />;
   if (view === "explore")
     return (
       <Explore
@@ -116,6 +122,7 @@ export default function App() {
         onAmbulance={() => setView("ambulance")}
         onDoctors={() => setView("doctors")}
         onMedicines={() => setView("medicines")}
+        onLeaderboard={() => setView("leaderboard")}
       />
     );
   if (view === "organ")

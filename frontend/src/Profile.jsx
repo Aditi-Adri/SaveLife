@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { api } from "./api";
 import ThemeToggle from "./ThemeToggle";
+import { getBadges, getEarnedBadges, getNextBadge } from "./badges";
 import "./Profile.css";
 
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
@@ -175,6 +176,43 @@ export default function Profile({ user, emailNotifications, onBack, onLogout, on
     }
   }
 
+  // ── Achievements ──
+  const allBadges    = getBadges(user);
+  const earnedBadges = getEarnedBadges(user);
+  const nextBadge    = getNextBadge(user);
+  const daysAsMember = user.created_at
+    ? Math.floor((Date.now() - new Date(user.created_at)) / 86_400_000)
+    : 0;
+
+  function printCertificate() {
+    const el = document.getElementById("cert-content");
+    if (!el) return;
+    const win = window.open("", "_blank", "width=700,height=600");
+    if (!win) { alert("Please allow popups to print the certificate."); return; }
+    win.document.write(`<!DOCTYPE html><html><head><title>SaveLife Certificate — ${user.name}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#fff;display:flex;justify-content:center;padding:40px 24px;font-family:Georgia,serif}
+.cert-paper{border:3px solid #dc2626;border-radius:16px;overflow:hidden;max-width:600px;width:100%}
+.cert-header{background:linear-gradient(135deg,#7f1d1d,#dc2626);padding:28px 32px 20px;text-align:center;color:#fff}
+.cert-logo{font-size:1.8rem;font-weight:900;letter-spacing:.08em}
+.cert-subtitle{font-size:.85rem;opacity:.85;margin-top:4px;font-family:Arial,sans-serif}
+.cert-divider{height:4px;background:linear-gradient(90deg,#dc2626,#fbbf24,#dc2626)}
+.cert-body{padding:32px;text-align:center;background:#fff;color:#1e293b}
+.cert-label{font-size:1.1rem;font-weight:700;letter-spacing:.1em;color:#7f1d1d;text-transform:uppercase;margin-bottom:18px}
+.cert-intro{font-size:.9rem;color:#64748b;margin-bottom:10px;font-style:italic}
+.cert-name{font-size:1.8rem;font-weight:900;color:#1e293b;letter-spacing:.05em;margin-bottom:18px;border-bottom:2px solid #dc2626;padding-bottom:14px}
+.cert-desc{font-size:.92rem;color:#374151;line-height:1.7;margin-bottom:14px}
+.cert-blood{display:inline-block;background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;padding:4px 16px;border-radius:999px;font-size:.88rem;font-weight:700;margin-bottom:18px;font-family:Arial,sans-serif}
+.cert-badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:18px}
+.cert-badge-pill{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:3px 12px;border-radius:999px;font-size:.8rem;font-family:Arial,sans-serif}
+.cert-quote{font-size:.95rem;color:#64748b;font-style:italic;margin-bottom:18px}
+.cert-footer{display:flex;justify-content:space-between;border-top:1px solid #e2e8f0;padding-top:14px;font-size:.78rem;color:#94a3b8;font-family:Arial,sans-serif}
+</style></head><body>${el.outerHTML}</body></html>`);
+    win.document.close();
+    setTimeout(() => { win.focus(); win.print(); }, 400);
+  }
+
   const initials = (user.name || "?")
     .split(" ")
     .map((s) => s[0])
@@ -256,6 +294,10 @@ export default function Profile({ user, emailNotifications, onBack, onLogout, on
         <button className={`pf-tab${tab === "emergency" ? " pf-tab-on" : ""}`} onClick={() => setTab("emergency")}>
           🚨 Emergency
           {contacts.length > 0 && <span className="pf-tab-badge">{contacts.length}</span>}
+        </button>
+        <button className={`pf-tab${tab === "achievements" ? " pf-tab-on" : ""}`} onClick={() => setTab("achievements")}>
+          🏆 Achievements
+          {earnedBadges.length > 0 && <span className="pf-tab-badge">{earnedBadges.length}</span>}
         </button>
       </div>
 
@@ -719,6 +761,115 @@ export default function Profile({ user, emailNotifications, onBack, onLogout, on
               Your SOS alert email is sent to <strong>{user.email}</strong>.
             </span>
           </div>
+        </section>
+      )}
+
+      {/* ── Achievements tab ── */}
+      {tab === "achievements" && (
+        <section className="pf-section">
+          <div className="pf-section-head">
+            <h2>🏆 Achievements</h2>
+          </div>
+
+          {/* Stats */}
+          <div className="ach-stats-row">
+            {[
+              ["Donations",    user.donation_count ?? 0],
+              ["Lives Helped", `${(user.donation_count || 0) * 3}+`],
+              ["Badges",       `${earnedBadges.length} / ${allBadges.length}`],
+              ["Days Active",  daysAsMember],
+            ].map(([label, val]) => (
+              <div className="ach-stat" key={label}>
+                <strong>{val}</strong>
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Badge grid */}
+          <div className="ach-section-title">Your Badges</div>
+          <div className="badge-grid">
+            {allBadges.map(b => (
+              <div key={b.id} className={`badge-card ${b.earned ? "badge-earned" : "badge-locked"}`} title={b.desc}>
+                <div className="badge-emoji">{b.emoji}</div>
+                <div className="badge-name">{b.name}</div>
+                <div className="badge-desc">{b.desc}</div>
+                {!b.earned && <div className="badge-lock">🔒</div>}
+              </div>
+            ))}
+          </div>
+
+          {/* Progress to next badge */}
+          {nextBadge && (
+            <div className="ach-progress-box">
+              <div className="ach-progress-label">
+                <span>{nextBadge.emoji} <strong>{nextBadge.name}</strong></span>
+                <span>{user.donation_count || 0} / {nextBadge.need} donations</span>
+              </div>
+              <div className="ach-progress-bar">
+                <div
+                  className="ach-progress-fill"
+                  style={{ width: `${Math.min(100, ((user.donation_count || 0) / nextBadge.need) * 100)}%` }}
+                />
+              </div>
+              <p className="ach-progress-hint">
+                {nextBadge.need - (user.donation_count || 0)} more donation{nextBadge.need - (user.donation_count || 0) !== 1 ? "s" : ""} to unlock!
+              </p>
+            </div>
+          )}
+
+          {/* Certificate */}
+          {(user.donation_count || 0) >= 1 ? (
+            <>
+              <div className="ach-section-title" style={{ marginTop: 28 }}>Your Certificate</div>
+              <p className="pf-hint">Click "Print / Save as PDF" to download or share your achievement.</p>
+              <div className="cert-paper" id="cert-content">
+                <div className="cert-header">
+                  <div className="cert-logo">🩺 SAVELIFE</div>
+                  <div className="cert-subtitle">Blood Donation Network · Bangladesh</div>
+                </div>
+                <div className="cert-divider" />
+                <div className="cert-body">
+                  <div className="cert-label">Certificate of Recognition</div>
+                  <div className="cert-intro">This is to certify that</div>
+                  <div className="cert-name">{user.name.toUpperCase()}</div>
+                  <div className="cert-desc">
+                    has generously donated blood <strong>{user.donation_count} time{user.donation_count !== 1 ? "s" : ""}</strong>,<br />
+                    contributing to saving up to <strong>{(user.donation_count) * 3} lives</strong>
+                  </div>
+                  {user.blood_type && (
+                    <div className="cert-blood">Blood Type: {user.blood_type}</div>
+                  )}
+                  {earnedBadges.length > 0 && (
+                    <div className="cert-badges">
+                      {earnedBadges.slice(0, 5).map(b => (
+                        <span key={b.id} className="cert-badge-pill">{b.emoji} {b.name}</span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="cert-quote">"Every drop saves a life"</div>
+                  <div className="cert-footer">
+                    <span>Issued: {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span>
+                    <span>ID: {user.user_code}</span>
+                  </div>
+                </div>
+              </div>
+              <div style={{ textAlign: "center", marginTop: 18 }}>
+                <button className="pf-btn pf-primary" onClick={printCertificate}>
+                  🖨️ Print / Save as PDF
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="ach-empty">
+              <div style={{ fontSize: "3rem" }}>🩸</div>
+              <h3>Start Your Journey!</h3>
+              <p>Log your first blood donation to unlock your first badge and certificate.</p>
+              <button className="pf-btn pf-primary" style={{ marginTop: 16 }} onClick={() => setTab("info")}>
+                Update Donation Count →
+              </button>
+            </div>
+          )}
         </section>
       )}
 

@@ -39,6 +39,7 @@ async function upload(path, formData) {
 export const api = {
   // public (no auth) — for the Explore page
   publicStats: () => request("/public/stats"),
+  leaderboard: () => request("/public/leaderboard"),
   publicRequests: (filters = {}) => {
     const q = new URLSearchParams();
     Object.entries(filters).forEach(([k, v]) => { if (v !== "" && v !== false && v != null) q.set(k, v); });
