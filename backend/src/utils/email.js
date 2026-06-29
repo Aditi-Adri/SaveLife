@@ -1218,7 +1218,6 @@ export async function sendOrganPledgeEmail({ toEmail, toName, organs, pledgeDate
 // ── Medical test booking confirmation ────────────────────────────────────────
 
 export async function sendTestBookingEmail({ toEmail, toName, booking }) {
-  if (!emailConfigured()) return;
   const dateStr = new Date(booking.scheduled_date).toLocaleDateString("en-BD", {
     weekday: "long", day: "numeric", month: "long", year: "numeric",
   });
@@ -1311,8 +1310,7 @@ export async function sendTestBookingEmail({ toEmail, toName, booking }) {
 </body>
 </html>`;
 
-  return transporter.sendMail({
-    from: `"SaveLife Medical" <${process.env.EMAIL_USER}>`,
+  return send({
     to: toEmail,
     subject: `Test Booking Confirmed — ${booking.test_name} · Ref ${booking.booking_ref}`,
     html,
