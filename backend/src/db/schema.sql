@@ -38,6 +38,9 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS religion           VARCHAR(30);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS latitude           DOUBLE PRECISION;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS longitude          DOUBLE PRECISION;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS location_text      VARCHAR(255);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS organ_pledge       BOOLEAN DEFAULT false;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS organ_pledge_date  TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS organs_pledged     JSONB DEFAULT '[]';
 
 -- People to notify when a user triggers an SOS.
 CREATE TABLE IF NOT EXISTS emergency_contacts (

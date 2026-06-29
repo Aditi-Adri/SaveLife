@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { query } from "../db/pool.js";
 import { requireAuth } from "../middleware/auth.js";
 import { generateUserCode } from "../utils/credentials.js";
-import { sendTestEmail, emailConfigured, sendWelcomeEmail } from "../utils/email.js";
+import { sendTestEmail, emailConfigured, sendWelcomeEmail, sendOrganPledgeEmail } from "../utils/email.js";
 
 const router = Router();
 
@@ -12,7 +12,8 @@ const router = Router();
 const PUBLIC_FIELDS = `id, user_code, name, email, phone, age, gender, weight,
   blood_type, donation_count, last_donation, donation_history,
   drug_addicted, medical_conditions, avatar_url, religion,
-  latitude, longitude, location_text, role, created_at`;
+  latitude, longitude, location_text, role, created_at,
+  organ_pledge, organ_pledge_date, organs_pledged`;
 
 function signToken(user) {
   return jwt.sign(
@@ -217,6 +218,38 @@ router.put("/profile", requireAuth, async (req, res) => {
     ]
   );
   res.json({ user: result.rows[0] });
+});
+
+const VALID_ORGANS = ["corneas","kidneys","heart","lungs","liver","pancreas","skin","bone_marrow","blood_vessels","intestines"];
+
+// POST /api/auth/organ-pledge — save organ donation pledge, send confirmation email
+router.post("/organ-pledge", requireAuth, async (req, res) => {
+  const { organs } = req.body || {};
+  if (!organs || !Array.isArray(organs) || organs.length === 0)
+    return res.status(400).json({ error: "Please select at least one organ to pledge." });
+
+  const valid = organs.filter(o => VALID_ORGANS.includes(o));
+  if (valid.length === 0)
+    return res.status(400).json({ error: "Invalid organ selection." });
+
+  const { rows } = await query(
+    `UPDATE users
+        SET organ_pledge = true, organ_pledge_date = now(), organs_pledged = $1
+      WHERE id = $2
+  RETURNING ${PUBLIC_FIELDS}`,
+    [JSON.stringify(valid), req.user.id]
+  );
+  const user = rows[0];
+
+  sendOrganPledgeEmail({
+    toEmail: user.email,
+    toName:  user.name,
+    organs:  valid,
+    pledgeDate: user.organ_pledge_date,
+    userCode:   user.user_code,
+  }).catch(e => console.warn("[organ-pledge] email failed:", e.message));
+
+  res.json({ user });
 });
 
 export default router;

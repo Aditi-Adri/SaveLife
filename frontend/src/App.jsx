@@ -88,7 +88,7 @@ export default function App() {
     else if (view === "leaderboard")
       mainView = <Leaderboard user={user} onBack={() => setView("explore")} />;
     else if (view === "bloodguide")
-      mainView = <BloodGuide user={user} onBack={() => setView("explore")} />;
+      mainView = <BloodGuide user={user} onBack={() => setView("explore")} onUserUpdate={(u) => setUser(u)} />;
     else if (view === "healthtips")
       mainView = <HealthTips user={user} onBack={() => setView("explore")} />;
     else

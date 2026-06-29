@@ -99,6 +99,7 @@ export const api = {
   login: (payload) => request("/auth/login", { method: "POST", body: payload }),
   me: () => request("/auth/me"),
   updateProfile: (payload) => request("/auth/profile", { method: "PUT", body: payload }),
+  organPledge: (organs) => request("/auth/organ-pledge", { method: "POST", body: { organs } }),
   testEmail: () => request("/auth/test-email", { method: "POST" }),
 
   // uploads

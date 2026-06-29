@@ -1,5 +1,6 @@
 import { useState } from "react";
 import ThemeToggle from "./ThemeToggle";
+import { api } from "./api";
 import "./BloodGuide.css";
 
 // ── Data ─────────────────────────────────────────────────────────────────────
@@ -184,10 +185,283 @@ const FACTS = [
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function BloodGuide({ user, onBack }) {
-  const [tab, setTab]         = useState("blood");
+// ── Organ pledge data ─────────────────────────────────────────────────────────
+
+const ORGAN_DEFS = [
+  { id: "corneas",       emoji: "👁️",  label: "Corneas (Eyes)",    note: "Restores sight — no blood type match needed",     living: false },
+  { id: "kidneys",       emoji: "🫘",  label: "Kidneys",            note: "Living donors can give one kidney",               living: true  },
+  { id: "heart",         emoji: "🫀",  label: "Heart",              note: "ABO compatible, donated after brain death",       living: false },
+  { id: "lungs",         emoji: "🫁",  label: "Lungs",              note: "ABO compatible, transplanted within 6 hours",     living: false },
+  { id: "liver",         emoji: "🩺",  label: "Liver",              note: "Living donors can donate a portion (regenerates)",living: true  },
+  { id: "pancreas",      emoji: "🔬",  label: "Pancreas",           note: "Helps patients with type 1 diabetes",             living: false },
+  { id: "skin",          emoji: "🧬",  label: "Skin & Tissue",      note: "Vital for burn victims",                          living: false },
+  { id: "bone_marrow",   emoji: "🦴",  label: "Bone & Marrow",      note: "Living donors — marrow regenerates in weeks",     living: true  },
+  { id: "blood_vessels", emoji: "🩸",  label: "Blood Vessels",      note: "Used in bypass surgery",                          living: false },
+  { id: "intestines",    emoji: "💚",  label: "Intestines",         note: "For patients with intestinal failure",             living: false },
+];
+
+function printOrganCert(user, organs, pledgeDate) {
+  const certNo  = `ODP-${user.user_code}`;
+  const dateStr = pledgeDate
+    ? new Date(pledgeDate).toLocaleDateString("en-BD", { day:"numeric", month:"long", year:"numeric" })
+    : new Date().toLocaleDateString("en-BD", { day:"numeric", month:"long", year:"numeric" });
+
+  const byId = Object.fromEntries(ORGAN_DEFS.map(o => [o.id, o]));
+  const organPills = organs.map(id => {
+    const o = byId[id] || { emoji: "🩺", label: id };
+    return `<span style="display:inline-flex;align-items:center;gap:5px;background:#f3e8ff;
+      border:1px solid #c4b5fd;border-radius:20px;padding:5px 13px;font-size:13px;
+      font-weight:600;color:#4c1d95;margin:4px;">${o.emoji} ${o.label}</span>`;
+  }).join("");
+
+  const win = window.open("", "_blank", "width=820,height=1060");
+  if (!win) return;
+  win.document.write(`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<title>Organ Donation Pledge Certificate</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:Georgia,serif;background:#f5f3ff;display:flex;justify-content:center;padding:32px;}
+  .cert{width:700px;background:#fff;border-radius:16px;overflow:hidden;
+        border:3px solid #7c3aed;box-shadow:0 8px 40px rgba(124,58,237,.18);}
+  .hdr{background:linear-gradient(135deg,#4c1d95,#7c3aed);padding:32px;text-align:center;color:#fff;}
+  .hdr-logo{font-size:2.4rem;margin-bottom:8px;}
+  .hdr h1{font-size:1.5rem;font-weight:900;letter-spacing:.04em;margin-bottom:4px;}
+  .hdr p{font-size:.85rem;color:#ddd6fe;}
+  .body{padding:36px 40px;}
+  .cert-title{text-align:center;font-size:1.2rem;font-weight:800;color:#4c1d95;
+    letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
+  .cert-sub{text-align:center;font-size:.9rem;color:#6b7280;font-style:italic;margin-bottom:18px;}
+  .cert-name{text-align:center;font-size:2.1rem;font-weight:900;color:#1a1a2e;
+    border-bottom:2px solid #7c3aed;padding-bottom:12px;margin-bottom:14px;}
+  .cert-desc{text-align:center;font-size:.97rem;color:#374151;line-height:1.7;margin-bottom:20px;}
+  .organs{text-align:center;margin-bottom:24px;}
+  .office-box{background:#fffbeb;border:2px solid #f59e0b;border-radius:10px;
+    padding:16px 20px;margin-bottom:22px;font-size:.82rem;line-height:1.7;}
+  .office-box strong{display:block;font-size:.85rem;color:#92400e;text-transform:uppercase;
+    letter-spacing:.06em;margin-bottom:6px;}
+  .footer-row{display:flex;justify-content:space-between;align-items:flex-end;
+    border-top:1px solid #e9d5f5;padding-top:18px;margin-top:8px;}
+  .footer-meta{font-size:.78rem;color:#6b7280;line-height:1.8;}
+  .sig-block{text-align:right;}
+  .sig-svg{display:block;margin-bottom:4px;}
+  .sig-name{font-size:.82rem;font-weight:700;color:#4c1d95;}
+  .sig-title{font-size:.75rem;color:#6b7280;}
+  @media print{body{background:white;padding:0;}
+    .cert{box-shadow:none;border-color:#7c3aed;}}
+</style></head><body>
+<div class="cert">
+  <div class="hdr">
+    <div class="hdr-logo">🎗️</div>
+    <h1>SaveLife Foundation</h1>
+    <p>Organ Donation Programme · Bangladesh</p>
+  </div>
+  <div class="body">
+    <div class="cert-title">Organ Donation Pledge Certificate</div>
+    <div class="cert-sub">This is to certify that</div>
+    <div class="cert-name">${user.name.toUpperCase()}</div>
+    <div class="cert-desc">
+      has solemnly pledged to donate the following organs for medical purposes
+      after death (and where applicable, as a living donor), subject to family
+      consent and the Human Organ Transplantation Act, 1999 of Bangladesh.
+    </div>
+    <div class="organs">${organPills}</div>
+    <div class="office-box">
+      <strong>⚠️ Important — Office Visit Required</strong>
+      To make this pledge <strong>legally binding</strong> and receive your official
+      <strong>Organ Donor Card</strong>, please visit us in person:<br><br>
+      <strong>SaveLife Foundation</strong> &nbsp;·&nbsp; House 23, Road 11, Block C, Banani, Dhaka — 1213<br>
+      📞 +880 2-55048123 &nbsp;·&nbsp; organ.pledge@savelife.org &nbsp;·&nbsp; Sun–Thu, 9AM–5PM<br><br>
+      <strong>Bring:</strong> NID card (original + copy) · 2 passport photos · this certificate (printed) · family member's signature
+    </div>
+    <div class="footer-row">
+      <div class="footer-meta">
+        Issued: ${dateStr}<br>
+        Certificate No.: <strong>${certNo}</strong><br>
+        Governed by: Human Organ Transplantation Act 1999 (Amended 2018)
+      </div>
+      <div class="sig-block">
+        <svg class="sig-svg" viewBox="0 0 180 44" width="160" height="40" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8,36 C28,6 46,40 64,22 S90,4 112,26 S138,38 172,14"
+                fill="none" stroke="#4c1d95" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="sig-name">Director, SaveLife Foundation</div>
+        <div class="sig-title">Organ Donation Programme</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>`);
+  win.document.close();
+  setTimeout(() => win.print(), 500);
+}
+
+// ── Organ pledge form ─────────────────────────────────────────────────────────
+
+function OrganPledgeSection({ user, onPledged }) {
+  const [selected, setSelected]   = useState([]);
+  const [agreed, setAgreed]       = useState(false);
+  const [busy, setBusy]           = useState(false);
+  const [error, setError]         = useState("");
+
+  function toggle(id) {
+    setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
+  }
+  function selectAll() { setSelected(ORGAN_DEFS.map(o => o.id)); }
+
+  async function submit() {
+    if (selected.length === 0) return setError("Please select at least one organ.");
+    if (!agreed) return setError("Please confirm that you understand and agree.");
+    setError(""); setBusy(true);
+    try {
+      const { user: updated } = await api.organPledge(selected);
+      onPledged(updated, selected, updated.organ_pledge_date);
+    } catch (e) {
+      setError(e.message || "Something went wrong. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="op-form-wrap">
+      <div className="op-form-header">
+        <div className="op-form-icon">🎗️</div>
+        <h2>Pledge Your Organs</h2>
+        <p>Select the organs you wish to donate. You may update this later by visiting our office.</p>
+      </div>
+
+      <div className="op-quick-row">
+        <button className="op-select-all" onClick={selectAll}>✓ Select All Organs</button>
+        <span className="op-selected-count">{selected.length} of {ORGAN_DEFS.length} selected</span>
+      </div>
+
+      <div className="op-organ-checks">
+        {ORGAN_DEFS.map(o => (
+          <label key={o.id} className={`op-check-card${selected.includes(o.id) ? " op-checked" : ""}`}>
+            <input type="checkbox" checked={selected.includes(o.id)} onChange={() => toggle(o.id)} />
+            <div className="op-check-emoji">{o.emoji}</div>
+            <div className="op-check-body">
+              <div className="op-check-label">{o.label}</div>
+              <div className="op-check-note">{o.note}</div>
+              {o.living && <span className="op-living-badge">Living donor possible</span>}
+            </div>
+            <div className="op-check-mark">{selected.includes(o.id) ? "✓" : ""}</div>
+          </label>
+        ))}
+      </div>
+
+      <div className="op-legal-box">
+        <label className="op-agree-row">
+          <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} />
+          <span>
+            I understand that this digital pledge is the <strong>first step</strong> only.
+            I must visit the SaveLife Foundation office at <strong>Banani, Dhaka</strong> with my NID
+            card and family consent to make this pledge legally binding under the
+            Human Organ Transplantation Act, 1999.
+          </span>
+        </label>
+      </div>
+
+      {error && <div className="op-error">{error}</div>}
+
+      <button className="op-submit-btn" onClick={submit} disabled={busy || selected.length === 0 || !agreed}>
+        {busy ? "Submitting…" : `🎗️ Submit Pledge (${selected.length} organ${selected.length !== 1 ? "s" : ""})`}
+      </button>
+
+      <p className="op-email-note">
+        A confirmation email with your pledge certificate and next steps will be sent to <strong>{user.email}</strong>.
+      </p>
+    </div>
+  );
+}
+
+// ── Organ pledge certificate (in-page view) ───────────────────────────────────
+
+function OrganPledgeCertView({ user, organs, pledgeDate, onPrint }) {
+  const certNo  = `ODP-${user.user_code}`;
+  const dateStr = pledgeDate
+    ? new Date(pledgeDate).toLocaleDateString("en-BD", { day:"numeric", month:"long", year:"numeric" })
+    : new Date().toLocaleDateString("en-BD", { day:"numeric", month:"long", year:"numeric" });
+  const byId = Object.fromEntries(ORGAN_DEFS.map(o => [o.id, o]));
+
+  return (
+    <div className="op-cert-wrap">
+      <div className="op-cert">
+        <div className="op-cert-hdr">
+          <div className="op-cert-hdr-logo">🎗️</div>
+          <div className="op-cert-hdr-title">SaveLife Foundation</div>
+          <div className="op-cert-hdr-sub">Organ Donation Programme · Bangladesh</div>
+        </div>
+        <div className="op-cert-body">
+          <div className="op-cert-heading">Organ Donation Pledge Certificate</div>
+          <div className="op-cert-sub">This is to certify that</div>
+          <div className="op-cert-name">{user.name.toUpperCase()}</div>
+          <div className="op-cert-divider" />
+          <p className="op-cert-desc">
+            has solemnly pledged to donate the following organs for medical purposes after death
+            (and where applicable, as a living donor), subject to family consent and the
+            Human Organ Transplantation Act, 1999 of Bangladesh.
+          </p>
+          <div className="op-cert-organs">
+            {organs.map(id => {
+              const o = byId[id] || { emoji: "🩺", label: id };
+              return <span key={id} className="op-cert-organ-pill">{o.emoji} {o.label}</span>;
+            })}
+          </div>
+          <div className="op-cert-office">
+            <div className="op-cert-office-title">⚠️ Important — Office Visit Required</div>
+            <p>
+              This digital pledge is your <strong>first step</strong>. To receive your official
+              <strong> Organ Donor Card</strong> and make this legally binding, visit us in person:
+            </p>
+            <address>
+              <strong>SaveLife Foundation</strong><br />
+              House 23, Road 11, Block C, Banani, Dhaka — 1213<br />
+              📞 +880 2-55048123 · Sun–Thu, 9AM–5PM
+            </address>
+            <p className="op-office-bring">
+              <strong>Bring:</strong> NID card · 2 passport photos · this certificate · family member's signature
+            </p>
+          </div>
+          <div className="op-cert-footer">
+            <div className="op-cert-meta">
+              <div>Issued: <strong>{dateStr}</strong></div>
+              <div>Cert No.: <strong>{certNo}</strong></div>
+              <div className="op-cert-law">Human Organ Transplantation Act, 1999 (Amended 2018)</div>
+            </div>
+            <div className="op-cert-sig">
+              <svg viewBox="0 0 180 44" className="op-sig-svg" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8,36 C28,6 46,40 64,22 S90,4 112,26 S138,38 172,14"
+                  fill="none" stroke="#4c1d95" strokeWidth="2.2"
+                  strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <div className="op-sig-name">Director, SaveLife Foundation</div>
+              <div className="op-sig-title">Organ Donation Programme</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button className="op-print-btn" onClick={onPrint}>🖨️ Print / Save as PDF</button>
+    </div>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+export default function BloodGuide({ user, onBack, onUserUpdate }) {
+  const [tab, setTab]           = useState("blood");
   const [selected, setSelected] = useState(user?.blood_type || null);
-  const [view, setView]       = useState("donate"); // "donate" | "receive"
+  const [view, setView]         = useState("donate");
+  const [pledged, setPledged]   = useState(user?.organ_pledge || false);
+  const [pledgeOrgans, setPledgeOrgans] = useState(user?.organs_pledged || []);
+  const [pledgeDate, setPledgeDate]     = useState(user?.organ_pledge_date || null);
+
+  function handlePledged(updatedUser, organs, date) {
+    setPledged(true);
+    setPledgeOrgans(organs);
+    setPledgeDate(date);
+    if (onUserUpdate) onUserUpdate(updatedUser);
+  }
 
   const info   = selected ? COMPAT[selected] : null;
   const special = selected ? SPECIAL[selected] : null;
@@ -413,25 +687,29 @@ export default function BloodGuide({ user, onBack }) {
             ))}
           </div>
 
-          {/* Pledge CTA */}
-          <div className="bgg-pledge-box">
-            <div className="bgg-pledge-icon">🎗️</div>
-            <h3>Become an Organ Donor</h3>
-            <p>
-              In Bangladesh, organ donation is regulated by the Human Organ Transplantation Act (1999).
-              You can register your intent with any government hospital or BSMMU (Shahbagh, Dhaka).
-            </p>
-            <div className="bgg-pledge-steps">
-              <div className="bgg-ps"><span>1</span> Tell your family your wish — their consent is required.</div>
-              <div className="bgg-ps"><span>2</span> Carry a donor card or note it on your NID/driving licence.</div>
-              <div className="bgg-ps"><span>3</span> Register at BSMMU or any major public hospital.</div>
-              <div className="bgg-ps"><span>4</span> Update your SaveLife profile — mark yourself as an organ pledger.</div>
+          {/* ── Pledge section (dynamic) ── */}
+          {!user ? (
+            <div className="op-login-prompt">
+              <div className="op-lp-icon">🎗️</div>
+              <h3>Pledge Your Organs — Save Up to 8 Lives</h3>
+              <p>Log in to your SaveLife account to make your organ donation pledge and receive a digital certificate.</p>
+              <div className="op-lp-steps">
+                <div className="op-lp-step"><span>1</span> Log in or create a free account</div>
+                <div className="op-lp-step"><span>2</span> Select which organs you wish to donate</div>
+                <div className="op-lp-step"><span>3</span> Receive your pledge certificate by email</div>
+                <div className="op-lp-step"><span>4</span> Visit our Banani, Dhaka office to make it legal</div>
+              </div>
             </div>
-            <div className="bgg-pledge-contact">
-              <strong>BSMMU Transplant Unit:</strong> 02-9661054 &nbsp;·&nbsp;
-              <strong>Kidney Foundation:</strong> 02-9120464
-            </div>
-          </div>
+          ) : pledged ? (
+            <OrganPledgeCertView
+              user={user}
+              organs={pledgeOrgans}
+              pledgeDate={pledgeDate}
+              onPrint={() => printOrganCert(user, pledgeOrgans, pledgeDate)}
+            />
+          ) : (
+            <OrganPledgeSection user={user} onPledged={handlePledged} />
+          )}
 
           {/* ABO for organs explainer */}
           <div className="bgg-organ-abo">
