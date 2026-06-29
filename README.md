@@ -464,64 +464,6 @@ POST /api/tests/bookings/:id/report — Upload test report
 
 
 
----
-
-## ⚙️ How to Run Locally
-
-### Prerequisites
-- **Node.js** v20 or higher
-- **PostgreSQL** 14+ running locally
-- **Gmail account** with a Google App Password (for email features)
-- **Git**
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/Aditi-Adri/SaveLife.git
-cd SaveLife
-2. Set up the database
-Open PostgreSQL and create the database:
-
-
-CREATE DATABASE savelife;
-3. Configure backend environment
-
-cd backend
-cp .env.example .env    # or create .env manually
-Edit backend/.env:
-
-
-DATABASE_URL=postgresql://your_user:your_password@localhost:5432/savelife
-JWT_SECRET=your_super_secret_jwt_key_here
-JWT_EXPIRES_IN=7d
-EMAIL_USER=your.gmail@gmail.com
-EMAIL_PASS=xxxx xxxx xxxx xxxx
-CLIENT_ORIGIN=http://localhost:5173
-PORT=4000
-NODE_ENV=development
-Getting a Gmail App Password: Go to your Google Account → Security → 2-Step Verification → App Passwords. Generate a password for "Mail" and paste it (spaces are fine — the app strips them automatically).
-
-4. Install backend dependencies and start
-
-cd backend
-npm install
-npm run dev
-The backend starts on http://localhost:4000. On first start it automatically runs the schema SQL and creates all tables.
-
-5. Install frontend dependencies and start
-In a new terminal:
-
-
-cd frontend
-npm install
-npm run dev
-The frontend starts on http://localhost:5173. All /api requests are proxied to port 4000 automatically.
-
-6. (Optional) Seed sample data
-
-cd backend
-npm run db:seed
-This populates the database with sample donors, hospitals, doctors, ambulances, and medicines.
 
 Production Build
 
