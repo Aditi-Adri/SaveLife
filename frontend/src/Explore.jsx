@@ -34,7 +34,7 @@ function timeAgo(iso) {
 }
 function dateStr(d) { return d ? new Date(d).toLocaleDateString() : null; }
 
-export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLogout, onHospitals, onAmbulance, onDoctors }) {
+export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLogout, onHospitals, onAmbulance, onDoctors, onMedicines }) {
   const [filters, setFilters]       = useState(EMPTY_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
   const [stats, setStats]           = useState(null);
@@ -141,6 +141,7 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
         <div className="ex-nav-actions">
           <a className="ex-navlink" onClick={onHospitals} role="button">🏥 Hospitals</a>
           <a className="ex-navlink" onClick={onDoctors} role="button">👨‍⚕️ Doctors</a>
+          <a className="ex-navlink" onClick={onMedicines} role="button">💊 Pharmacy</a>
           <a className="ex-navlink amb-link" onClick={onAmbulance} role="button">🚑 Ambulance</a>
           <a className="ex-navlink" onClick={onOrgan} role="button">Organ Donation</a>
           <ThemeToggle />

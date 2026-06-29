@@ -7,6 +7,7 @@ import Hospitals from "./Hospitals";
 import Ambulance from "./Ambulance";
 import Profile from "./Profile";
 import Doctors from "./Doctors";
+import Medicines from "./Medicines";
 import "./App.css";
 
 const INTENT_MESSAGE = {
@@ -67,6 +68,8 @@ export default function App() {
       return <Ambulance onBack={() => setView("explore")} />;
     if (view === "doctors")
       return <Doctors user={user} onBack={() => setView("explore")} onAuth={goAuth} />;
+    if (view === "medicines")
+      return <Medicines user={user} onBack={() => setView("explore")} onAuth={goAuth} />;
     if (view === "profile")
       return (
         <Profile
@@ -87,6 +90,7 @@ export default function App() {
         onHospitals={() => setView("hospitals")}
         onAmbulance={() => setView("ambulance")}
         onDoctors={() => setView("doctors")}
+        onMedicines={() => setView("medicines")}
       />
     );
   }
@@ -102,6 +106,7 @@ export default function App() {
         onHospitals={() => setView("hospitals")}
         onAmbulance={() => setView("ambulance")}
         onDoctors={() => setView("doctors")}
+        onMedicines={() => setView("medicines")}
       />
     );
   if (view === "organ")
@@ -112,6 +117,8 @@ export default function App() {
     return <Ambulance onBack={() => setView("explore")} />;
   if (view === "doctors")
     return <Doctors user={null} onBack={() => setView("explore")} onAuth={goAuth} />;
+  if (view === "medicines")
+    return <Medicines user={null} onBack={() => setView("explore")} onAuth={goAuth} />;
   return (
     <div className="app">
       <header className="header">

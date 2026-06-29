@@ -83,6 +83,16 @@ export const api = {
   bookAppointment: (payload) => request("/doctors/appointments", { method: "POST", body: payload }),
   myAppointments: () => request("/doctors/appointments/mine"),
 
+  // medicines & pharmacy
+  publicMedicines: (filters = {}) => {
+    const q = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => { if (v && v !== "All") q.set(k, v); });
+    const qs = q.toString();
+    return request(`/medicines${qs ? "?" + qs : ""}`);
+  },
+  placeMedicineOrder: (payload) => request("/medicines/orders", { method: "POST", body: payload }),
+  myMedicineOrders: () => request("/medicines/orders/mine"),
+
   // auth
   register: (payload) => request("/auth/register", { method: "POST", body: payload }),
   login: (payload) => request("/auth/login", { method: "POST", body: payload }),
