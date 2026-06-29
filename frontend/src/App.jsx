@@ -26,8 +26,29 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [emailNotifications, setEmailNotifications] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState("home"); // home | explore | organ | auth
+  const [view, _setView] = useState(() => window.location.hash.slice(1) || "home");
   const [authIntent, setAuthIntent] = useState(null);
+  const [bgTab, setBgTab] = useState("blood");
+
+  // Wrap setView so every navigation pushes a browser history entry.
+  function setView(v) {
+    _setView(v);
+    const hash = v === "home" ? "" : v;
+    if (window.location.hash.slice(1) !== hash) {
+      window.history.pushState({ view: v }, "", hash ? `#${hash}` : window.location.pathname);
+    }
+  }
+
+  // Browser back / forward button support.
+  useEffect(() => {
+    const onPop = (e) => {
+      _setView(e.state?.view ?? window.location.hash.slice(1) ?? "home");
+    };
+    window.addEventListener("popstate", onPop);
+    // Stamp the initial state so the first back-press works correctly.
+    window.history.replaceState({ view: window.location.hash.slice(1) || "home" }, "");
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
 
   useEffect(() => {
     if (!auth.getToken()) {
@@ -53,7 +74,6 @@ export default function App() {
     setView("auth");
   }
 
-  // Login or signup: store the user and land on the Explore page.
   function onAuthed(u) {
     setUser(u);
     setAuthIntent(null);
@@ -88,7 +108,7 @@ export default function App() {
     else if (view === "leaderboard")
       mainView = <Leaderboard user={user} onBack={() => setView("explore")} />;
     else if (view === "bloodguide")
-      mainView = <BloodGuide user={user} onBack={() => setView("explore")} onUserUpdate={(u) => setUser(u)} />;
+      mainView = <BloodGuide user={user} onBack={() => setView("explore")} onUserUpdate={(u) => setUser(u)} onAuth={goAuth} initialTab={bgTab} />;
     else if (view === "healthtips")
       mainView = <HealthTips user={user} onBack={() => setView("explore")} />;
     else
@@ -96,7 +116,7 @@ export default function App() {
         <Explore
           user={user}
           onHome={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          onOrgan={() => setView("organ")}
+          onOrgan={() => { setBgTab("organ"); setView("bloodguide"); }}
           onProfile={() => setView("profile")}
           onLogout={logout}
           onHospitals={() => setView("hospitals")}
@@ -104,7 +124,7 @@ export default function App() {
           onDoctors={() => setView("doctors")}
           onMedicines={() => setView("medicines")}
           onLeaderboard={() => setView("leaderboard")}
-          onBloodGuide={() => setView("bloodguide")}
+          onBloodGuide={() => { setBgTab("blood"); setView("bloodguide"); }}
           onHealthTips={() => setView("healthtips")}
         />
       );
@@ -121,7 +141,7 @@ export default function App() {
   if (view === "leaderboard")
     return <Leaderboard user={null} onBack={() => setView("explore")} />;
   if (view === "bloodguide")
-    return <BloodGuide user={null} onBack={() => setView("explore")} />;
+    return <BloodGuide user={null} onBack={() => setView("explore")} onAuth={goAuth} initialTab={bgTab} />;
   if (view === "healthtips")
     return <HealthTips user={null} onBack={() => setView("explore")} />;
   if (view === "explore")
@@ -129,13 +149,13 @@ export default function App() {
       <Explore
         onHome={() => setView("home")}
         onAuth={goAuth}
-        onOrgan={() => setView("organ")}
+        onOrgan={() => { setBgTab("organ"); setView("bloodguide"); }}
         onHospitals={() => setView("hospitals")}
         onAmbulance={() => setView("ambulance")}
         onDoctors={() => setView("doctors")}
         onMedicines={() => setView("medicines")}
         onLeaderboard={() => setView("leaderboard")}
-        onBloodGuide={() => setView("bloodguide")}
+        onBloodGuide={() => { setBgTab("blood"); setView("bloodguide"); }}
         onHealthTips={() => setView("healthtips")}
       />
     );

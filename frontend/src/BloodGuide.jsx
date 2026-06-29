@@ -448,8 +448,8 @@ function OrganPledgeCertView({ user, organs, pledgeDate, onPrint }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function BloodGuide({ user, onBack, onUserUpdate }) {
-  const [tab, setTab]           = useState("blood");
+export default function BloodGuide({ user, onBack, onUserUpdate, onAuth, initialTab }) {
+  const [tab, setTab]           = useState(initialTab || "blood");
   const [selected, setSelected] = useState(user?.blood_type || null);
   const [view, setView]         = useState("donate");
   const [pledged, setPledged]   = useState(user?.organ_pledge || false);
@@ -692,13 +692,18 @@ export default function BloodGuide({ user, onBack, onUserUpdate }) {
             <div className="op-login-prompt">
               <div className="op-lp-icon">🎗️</div>
               <h3>Pledge Your Organs — Save Up to 8 Lives</h3>
-              <p>Log in to your SaveLife account to make your organ donation pledge and receive a digital certificate.</p>
+              <p>Log in to your SaveLife account to select which organs you wish to donate and receive your official pledge certificate by email.</p>
               <div className="op-lp-steps">
                 <div className="op-lp-step"><span>1</span> Log in or create a free account</div>
                 <div className="op-lp-step"><span>2</span> Select which organs you wish to donate</div>
                 <div className="op-lp-step"><span>3</span> Receive your pledge certificate by email</div>
                 <div className="op-lp-step"><span>4</span> Visit our Banani, Dhaka office to make it legal</div>
               </div>
+              {onAuth && (
+                <button className="op-login-btn" onClick={() => onAuth("donate")}>
+                  Log in to Pledge →
+                </button>
+              )}
             </div>
           ) : pledged ? (
             <OrganPledgeCertView
