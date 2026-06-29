@@ -2,7 +2,9 @@ import { useEffect, useState, useCallback } from "react";
 import { api } from "./api";
 import LeafletMap from "./LeafletMap";
 import ThemeToggle from "./ThemeToggle";
+import { ARTICLES } from "./HealthTips";
 import "./Explore.css";
+import "./HealthTips.css";
 
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 const RELIGIONS   = ["Islam", "Hinduism", "Christianity", "Buddhism", "Atheism", "Other"];
@@ -34,7 +36,7 @@ function timeAgo(iso) {
 }
 function dateStr(d) { return d ? new Date(d).toLocaleDateString() : null; }
 
-export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLogout, onHospitals, onAmbulance, onDoctors, onMedicines, onLeaderboard, onBloodGuide }) {
+export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLogout, onHospitals, onAmbulance, onDoctors, onMedicines, onLeaderboard, onBloodGuide, onHealthTips }) {
   const [filters, setFilters]       = useState(EMPTY_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
   const [stats, setStats]           = useState(null);
@@ -146,6 +148,7 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
           <a className="ex-navlink" onClick={onOrgan} role="button">Organ Donation</a>
           <a className="ex-navlink" onClick={onLeaderboard} role="button">🏆 Leaderboard</a>
           <a className="ex-navlink" onClick={onBloodGuide} role="button">🩸 Blood Guide</a>
+          <a className="ex-navlink" onClick={onHealthTips} role="button">💡 Health Tips</a>
           <ThemeToggle />
           {user ? (
             <>
@@ -350,6 +353,34 @@ export default function Explore({ user, onHome, onAuth, onOrgan, onProfile, onLo
             )}
         </main>
       </div>
+
+      {/* ── HEALTH TIPS STRIP ── */}
+      <section className="ex-section">
+        <div className="ht-strip">
+          <div className="ht-strip-header">
+            <span className="ht-strip-title">💡 Health Tips &amp; Guides</span>
+            <button className="ht-strip-see-all" onClick={onHealthTips}>See all articles →</button>
+          </div>
+          <div className="ht-strip-cards">
+            {ARTICLES.filter(a => a.featured).slice(0, 3).map(a => (
+              <div key={a.id} className="ht-card" onClick={onHealthTips} role="button">
+                <div className="ht-card-top" style={{ background: `linear-gradient(135deg, ${a.catColor}22, ${a.catColor}44)` }}>
+                  <div className="ht-card-emoji">{a.emoji}</div>
+                </div>
+                <div className="ht-card-body">
+                  <span className="ht-cat-pill" style={{ background: a.catColor }}>{a.cat}</span>
+                  <h3 className="ht-card-title">{a.title}</h3>
+                  <p className="ht-card-excerpt">{a.excerpt}</p>
+                  <div className="ht-card-footer">
+                    <span className="ht-readtime">📖 {a.readTime} min</span>
+                    <span className="ht-card-cta">Read →</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ── ORGAN TEASER ── */}
       <section className="ex-section">
