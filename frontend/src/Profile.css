@@ -430,6 +430,8 @@
 .ec-rel { font-size: 0.8rem; color: var(--muted); }
 .ec-phone { font-size: 0.85rem; color: #dc2626; text-decoration: none; font-weight: 600; }
 .ec-phone:hover { text-decoration: underline; }
+.ec-email { font-size: 0.82rem; color: #2563eb; text-decoration: none; }
+.ec-email:hover { text-decoration: underline; }
 .ec-del {
   background: transparent; border: 1px solid var(--line);
   color: var(--muted); border-radius: 6px;

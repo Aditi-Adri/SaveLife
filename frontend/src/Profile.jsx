@@ -126,7 +126,7 @@ export default function Profile({ user, emailNotifications, onBack, onLogout, on
 
   // Emergency contacts
   const [contacts, setContacts]         = useState([]);
-  const [contactForm, setContactForm]   = useState({ name: "", phone: "", relationship: "" });
+  const [contactForm, setContactForm]   = useState({ name: "", phone: "", email: "", relationship: "" });
   const [contactBusy, setContactBusy]   = useState(false);
   const [contactErr, setContactErr]     = useState("");
 
@@ -145,7 +145,7 @@ export default function Profile({ user, emailNotifications, onBack, onLogout, on
     try {
       const { contact } = await api.addContact(contactForm);
       setContacts(prev => [...prev, contact]);
-      setContactForm({ name: "", phone: "", relationship: "" });
+      setContactForm({ name: "", phone: "", email: "", relationship: "" });
     } catch (err) {
       setContactErr(err.message);
     } finally {
@@ -666,6 +666,15 @@ export default function Profile({ user, emailNotifications, onBack, onLogout, on
                   inputMode="tel"
                   required
                 />
+              </div>
+              <div className="ec-form-row" style={{ marginTop: 8 }}>
+                <input
+                  className="ec-input"
+                  type="email"
+                  placeholder="Email (so they get SOS alert emails)"
+                  value={contactForm.email}
+                  onChange={e => setContactForm(f => ({ ...f, email: e.target.value }))}
+                />
                 <input
                   className="ec-input"
                   placeholder="Relationship (e.g. Father, Doctor)"
@@ -693,7 +702,8 @@ export default function Profile({ user, emailNotifications, onBack, onLogout, on
                   <div className="ec-info">
                     <strong>{c.name}</strong>
                     {c.relationship && <span className="ec-rel">{c.relationship}</span>}
-                    <a href={`tel:${c.phone}`} className="ec-phone">{c.phone}</a>
+                    <a href={`tel:${c.phone}`} className="ec-phone">📞 {c.phone}</a>
+                    {c.email && <a href={`mailto:${c.email}`} className="ec-email">✉️ {c.email}</a>}
                   </div>
                   <button className="ec-del" onClick={() => removeContact(c.id)} title="Remove">✕</button>
                 </div>

@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS emergency_contacts (
 );
 
 CREATE INDEX IF NOT EXISTS idx_contacts_user_id ON emergency_contacts(user_id);
+ALTER TABLE emergency_contacts ADD COLUMN IF NOT EXISTS email VARCHAR(200);
 
 -- An SOS alert raised by a user. Responders pick these up.
 CREATE TABLE IF NOT EXISTS alerts (
