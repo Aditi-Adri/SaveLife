@@ -33,3 +33,5 @@ services:
         generateValue: true   # Render generates a strong secret automatically
       - key: JWT_EXPIRES_IN
         value: 7d
+      - key: NODE_OPTIONS
+        value: "--dns-result-order=ipv4first"
