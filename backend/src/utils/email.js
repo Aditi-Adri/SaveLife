@@ -15,6 +15,7 @@ function transport() {
     host: "smtp.gmail.com",
     port: 465,
     secure: true,
+    family: 4,
     auth: { user: process.env.EMAIL_USER, pass },
     connectionTimeout: 10000,
     greetingTimeout: 10000,
