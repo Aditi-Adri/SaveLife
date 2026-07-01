@@ -1,36 +1,34 @@
-// Email notifications via Resend (HTTPS API — works on all hosts including Render free tier).
-// Set RESEND_API_KEY in environment. Falls back gracefully if not set.
-
-import { Resend } from "resend";
-
-let _resend = null;
-
-function getResend() {
-  if (_resend) return _resend;
-  if (!process.env.RESEND_API_KEY) return null;
-  _resend = new Resend(process.env.RESEND_API_KEY);
-  return _resend;
-}
+// Email notifications via Brevo REST API (HTTPS — works on Render free tier, no domain needed).
+// Set BREVO_API_KEY in environment. Falls back gracefully if not set.
 
 export function emailConfigured() {
-  return Boolean(process.env.RESEND_API_KEY);
+  return Boolean(process.env.BREVO_API_KEY);
 }
 
 async function send({ to, subject, html, text }) {
-  const r = getResend();
-  if (!r) {
-    console.warn("[email] RESEND_API_KEY not set — notification skipped");
+  if (!process.env.BREVO_API_KEY) {
+    console.warn("[email] BREVO_API_KEY not set — notification skipped");
     return;
   }
-  const { data, error } = await r.emails.send({
-    from: "SaveLife <onboarding@resend.dev>",
-    to,
-    subject,
-    html,
-    text,
+  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "api-key": process.env.BREVO_API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      sender: { name: "SaveLife", email: process.env.EMAIL_USER || "thesis.bracu.ac.bd@gmail.com" },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html,
+      textContent: text,
+    }),
   });
-  if (error) throw new Error(error.message || JSON.stringify(error));
-  console.log(`[email] "${subject}" → ${to} (id: ${data?.id})`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `Brevo error ${res.status}`);
+  }
+  console.log(`[email] "${subject}" → ${to}`);
 }
 
 // Notify the requester that a donor accepted their blood/plasma request.
