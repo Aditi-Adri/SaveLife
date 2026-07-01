@@ -12,8 +12,13 @@ function transport() {
   // Gmail app passwords are shown with spaces (xxxx xxxx xxxx xxxx) but must be used without
   const pass = process.env.EMAIL_PASS.replace(/\s+/g, "");
   _transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
     auth: { user: process.env.EMAIL_USER, pass },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
   });
   return _transporter;
 }
