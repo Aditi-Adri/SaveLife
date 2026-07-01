@@ -16,9 +16,9 @@ services:
     runtime: node
     plan: free
     # Install both apps and build the frontend bundle.
-    buildCommand: npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend
+    buildCommand: cd frontend && npm install && npm run build && cd ../backend && npm install
     # Start the API, which also serves frontend/dist in production.
-    startCommand: npm start --prefix backend
+    startCommand: node backend/src/index.js
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
