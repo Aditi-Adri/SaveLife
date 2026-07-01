@@ -163,6 +163,9 @@ router.post("/test-email", requireAuth, async (req, res) => {
   const result = await query("SELECT name, email FROM users WHERE id = $1", [req.user.id]);
   const user = result.rows[0];
   if (!user) return res.status(404).json({ error: "User not found" });
+  if (!emailConfigured()) {
+    return res.status(503).json({ error: "RESEND_API_KEY not set on server — email not configured" });
+  }
   try {
     await sendTestEmail(user.email, user.name);
     res.json({ ok: true, sentTo: user.email });
