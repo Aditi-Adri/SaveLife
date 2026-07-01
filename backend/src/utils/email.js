@@ -1,52 +1,33 @@
-// Email notifications via Gmail SMTP + nodemailer.
-// Sends to ANY recipient email address — no domain required.
-// Set EMAIL_USER + EMAIL_PASS (Gmail App Password) in backend/.env.
+// Email notifications via Resend (HTTPS API — works on all hosts including Render free tier).
+// Set RESEND_API_KEY in environment. Falls back gracefully if not set.
 
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-let _transporter = null;
+let _resend = null;
 
-function transport() {
-  if (_transporter) return _transporter;
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return null;
-  // Gmail app passwords are shown with spaces (xxxx xxxx xxxx xxxx) but must be used without
-  const pass = process.env.EMAIL_PASS.replace(/\s+/g, "");
-  _transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
-    family: 4,
-    auth: { user: process.env.EMAIL_USER, pass },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
-  });
-  return _transporter;
+function getResend() {
+  if (_resend) return _resend;
+  if (!process.env.RESEND_API_KEY) return null;
+  _resend = new Resend(process.env.RESEND_API_KEY);
+  return _resend;
 }
 
 export function emailConfigured() {
-  return Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+  return Boolean(process.env.RESEND_API_KEY);
 }
 
 async function send({ to, subject, html, text }) {
-  const t = transport();
-  if (!t) {
-    console.warn("[email] EMAIL_USER/EMAIL_PASS not set — notification skipped");
+  const r = getResend();
+  if (!r) {
+    console.warn("[email] RESEND_API_KEY not set — notification skipped");
     return;
   }
-  await t.sendMail({
-    from: `"SaveLife" <${process.env.EMAIL_USER}>`,
+  await r.emails.send({
+    from: "SaveLife <onboarding@resend.dev>",
     to,
-    replyTo: process.env.EMAIL_USER,
     subject,
     html,
     text,
-    headers: {
-      "List-Unsubscribe": `<mailto:${process.env.EMAIL_USER}?subject=unsubscribe>`,
-      "X-Priority": "1",
-      "Importance": "High",
-      "Precedence": "transactional",
-    },
   });
   console.log(`[email] "${subject}" → ${to}`);
 }
