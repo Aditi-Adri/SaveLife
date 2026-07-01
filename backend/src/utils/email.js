@@ -22,14 +22,15 @@ async function send({ to, subject, html, text }) {
     console.warn("[email] RESEND_API_KEY not set — notification skipped");
     return;
   }
-  await r.emails.send({
+  const { data, error } = await r.emails.send({
     from: "SaveLife <onboarding@resend.dev>",
     to,
     subject,
     html,
     text,
   });
-  console.log(`[email] "${subject}" → ${to}`);
+  if (error) throw new Error(error.message || JSON.stringify(error));
+  console.log(`[email] "${subject}" → ${to} (id: ${data?.id})`);
 }
 
 // Notify the requester that a donor accepted their blood/plasma request.
